@@ -1,14 +1,26 @@
 const roles = require("./roles");
 const { rooms } = require("./roomManager");
+const {
+  shuffle,
+  findPlayerByRole,
+  findPlayerById,
+  addScore,
+  isCorrectPrediction,
+  getOtherPlayers,
+  resetCycleScores
+} = require("./utils");
 
-function shuffle(arr) {
-  return [...arr].sort(() => Math.random() - 0.5);
-}
-
+/**
+ * Start a new cycle/game for the room
+ */
 function startGame(roomId, io) {
   const room = rooms[roomId];
   room.cycle++;
 
+  // Reset cycle scores
+  resetCycleScores(room.game?.players || {});
+
+  // Initialize game object
   room.game = {
     phase: "BOX",
     players: {},
@@ -25,7 +37,8 @@ function startGame(roomId, io) {
     }
   };
 
-  const baseRoles = shuffle([
+  // Randomize roles for this cycle
+  const rolePool = shuffle([
     ...roles.slice(0, room.players.length),
     ...Array(Math.max(0, room.players.length - roles.length)).fill({
       name: "Citizen",
@@ -37,27 +50,34 @@ function startGame(roomId, io) {
     room.game.players[p.id] = {
       id: p.id,
       name: p.name,
-      role: baseRoles[i],
+      role: rolePool[i],
       cycleScore: 0
     };
-    io.to(p.id).emit("role", baseRoles[i]);
+    io.to(p.id).emit("role", rolePool[i]);
   });
 
+  // Broadcast players list
   io.to(roomId).emit("players", room.players);
+  // Move to first phase
   io.to(roomId).emit("phase", "MINISTER_JESTER");
 }
 
+/**
+ * Handle player actions
+ */
 function handleAction({ roomId, type, data, from }, io) {
   const room = rooms[roomId];
+  if (!room?.game) return;
+
   const game = room.game;
+  const playerRole = game.players[from]?.role?.name;
 
-  const role = game.players[from]?.role.name;
-
-  // Minister & Jester
+  // Minister & Jester actions
   if (type === "MINISTER_JESTER") {
-    if (role === "Minister") game.actions.MINISTER[from] = data;
-    if (role === "Jester") game.actions.JESTER[from] = data;
+    if (playerRole === "Minister") game.actions.MINISTER[from] = data;
+    if (playerRole === "Jester") game.actions.JESTER[from] = data;
 
+    // Move to Spy phase once any action occurs
     if (
       Object.keys(game.actions.MINISTER).length ||
       Object.keys(game.actions.JESTER).length
@@ -66,16 +86,16 @@ function handleAction({ roomId, type, data, from }, io) {
     }
   }
 
-  // Spy
-  if (type === "SPY" && role === "Spy") {
+  // Spy actions
+  if (type === "SPY" && playerRole === "Spy") {
     game.actions.SPY[from] = data;
     io.to(roomId).emit("phase", "POLICE_KNIGHT");
   }
 
-  // Police
+  // Police / Knight actions
   if (type === "POLICE_KNIGHT") {
-    if (role === "Police") game.actions.POLICE = data;
-    if (role === "Knight") game.actions.KNIGHT = data;
+    if (playerRole === "Police") game.actions.POLICE = data;
+    if (playerRole === "Knight") game.actions.KNIGHT = data;
 
     if (game.actions.POLICE !== null || game.actions.KNIGHT !== null) {
       endCycle(roomId, io);
@@ -83,73 +103,98 @@ function handleAction({ roomId, type, data, from }, io) {
   }
 }
 
+/**
+ * Compute scores and finalize the cycle
+ */
 function endCycle(roomId, io) {
   const room = rooms[roomId];
-  const game = room.game;
+  if (!room?.game) return;
 
+  const game = room.game;
   const players = game.players;
 
-  let thiefId;
-  Object.values(players).forEach(p => {
-    if (p.role.name === "Thief") thiefId = p.id;
-  });
+  // Find Thief
+  const thief = findPlayerByRole(players, "Thief");
 
-  // Spy logic
+  // Spy logic + bonus blocking
   Object.entries(game.actions.SPY).forEach(([spyId, guesses]) => {
     let correct = 0;
-    if (guesses?.minister && players[guesses.minister]?.role.name === "Minister") {
+
+    if (
+      guesses?.minister &&
+      isCorrectPrediction(players, guesses.minister, "Minister")
+    ) {
       correct++;
-      game.spyBlocks.minister = true;
+      game.spyBlocks.minister = true; // block minister bonus
     }
-    if (guesses?.jester && players[guesses.jester]?.role.name === "Jester") {
+
+    if (
+      guesses?.jester &&
+      isCorrectPrediction(players, guesses.jester, "Jester")
+    ) {
       correct++;
-      game.spyBlocks.jester = true;
+      game.spyBlocks.jester = true; // block jester bonus
     }
-    players[spyId].cycleScore += correct * 100;
+
+    addScore(room, spyId, correct * 100);
   });
 
-  // Police
-  if (game.actions.POLICE === thiefId) {
-    players[Object.keys(players).find(id => players[id].role.name === "Police")]
-      .cycleScore += 900;
-  } else {
-    players[Object.keys(players).find(id => players[id].role.name === "Police")]
-      .cycleScore -= 900;
+  // Police score
+  const police = findPlayerByRole(players, "Police");
+  if (police) {
+    if (game.actions.POLICE === thief?.id) {
+      addScore(room, police.id, 900);
+    } else {
+      addScore(room, police.id, -900);
+    }
   }
 
-  // Knight
-  if (game.actions.KNIGHT === thiefId) {
-    players[Object.keys(players).find(id => players[id].role.name === "Knight")]
-      .cycleScore += 300;
+  // Knight score
+  const knight = findPlayerByRole(players, "Knight");
+  if (knight) {
+    if (game.actions.KNIGHT === thief?.id) {
+      addScore(room, knight.id, 300); // bonus for protecting Thief
+    }
   }
 
-  // Minister
-  if (!game.spyBlocks.minister && game.actions.POLICE === thiefId) {
-    players[Object.keys(players).find(id => players[id].role.name === "Minister")]
-      .cycleScore += 100;
+  // Minister bonus
+  const minister = findPlayerByRole(players, "Minister");
+  if (
+    minister &&
+    !game.spyBlocks.minister &&
+    game.actions.POLICE === thief?.id
+  ) {
+    addScore(room, minister.id, 100);
   }
 
-  // Jester
-  if (!game.spyBlocks.jester && game.actions.KNIGHT === thiefId) {
-    players[Object.keys(players).find(id => players[id].role.name === "Jester")]
-      .cycleScore += 400;
+  // Jester bonus
+  const jester = findPlayerByRole(players, "Jester");
+  if (
+    jester &&
+    !game.spyBlocks.jester &&
+    game.actions.KNIGHT === thief?.id
+  ) {
+    addScore(room, jester.id, 400);
   }
 
-  // Base scores
-  Object.values(players).forEach(p => {
-    p.cycleScore += p.role.score;
-    const totalPlayer = room.players.find(x => x.id === p.id);
-    totalPlayer.score += p.cycleScore;
+  // Add base role scores
+  Object.values(players).forEach((p) => {
+    addScore(room, p.id, p.role.score);
   });
 
+  // Broadcast results
   io.to(roomId).emit("result", {
     players,
     police: game.actions.POLICE,
     knight: game.actions.KNIGHT,
-    blocks: game.spyBlocks
+    spyBlocks: game.spyBlocks
   });
 
   io.to(roomId).emit("phase", "RESULT");
 }
 
-module.exports = { startGame, handleAction };
+module.exports = {
+  startGame,
+  handleAction,
+  endCycle
+};
