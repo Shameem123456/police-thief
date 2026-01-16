@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Room - Police & Thief</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: #00c6ff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.3s;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 198, 255, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #b0b0d0;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #00b09b;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 176, 155, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 176, 155, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .room-info {
+            margin-top: 40px;
+            padding: 30px;
+            background: rgba(0, 176, 155, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(0, 176, 155, 0.3);
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .room-id {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #00b09b;
+            margin: 20px 0;
+            letter-spacing: 3px;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(0, 176, 155, 0.5);
+        }
+
+        .copy-btn {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 20px 0;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .instructions {
+            margin-top: 20px;
+            color: #b0b0d0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .instructions p {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instructions p:before {
+            content: "•";
+            color: #00b09b;
+            font-size: 1.5rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #00b09b;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #ff416c;
+            text-align: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 65, 108, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 65, 108, 0.3);
+            display: none;
+        }
+
+        .success-message {
+            color: #00b09b;
+            text-align: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 176, 155, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 176, 155, 0.3);
+            display: none;
+        }
+
+        .share-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .share-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .share-btn.whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .share-btn.telegram {
+            background: #0088cc;
+            color: white;
+        }
+
+        .share-btn.copy {
+            background: #8e2de2;
+            color: white;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            .room-id {
+                font-size: 2.2rem;
+            }
+            
+            .btn {
+                padding: 16px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-btn" onclick="goBack()">
+            ← Back to Home
+        </button>
+        
+        <h2>Create Room</h2>
+        
+        <div class="input-group">
+            <label for="hostName">Your Name</label>
+            <input type="text" id="hostName" placeholder="Enter your name (2-20 characters)" maxlength="20" autocomplete="off">
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Creating your room...</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+        
+        <button class="btn" id="createBtn" onclick="createRoom()">Create Room</button>
+        
+        <div class="room-info" id="roomInfo">
+            <p style="text-align: center; font-size: 1.2rem; margin-bottom: 20px;">🎉 Room Created Successfully!</p>
+            <p style="text-align: center; color: #b0b0d0;">Share this Room ID with your friends:</p>
+            <div class="room-id" id="roomIdDisplay"></div>
+            
+            <div class="share-section">
+                <p>Quick Share:</p>
+                <div class="share-buttons">
+                    <button class="share-btn whatsapp" onclick="shareOnWhatsApp()">WhatsApp</button>
+                    <button class="share-btn telegram" onclick="shareOnTelegram()">Telegram</button>
+                    <button class="share-btn copy" onclick="copyRoomId()">Copy ID</button>
+                </div>
+            </div>
+            
+            <button class="copy-btn" onclick="copyRoomId()">
+                📋 Copy Room ID to Clipboard
+            </button>
+            
+            <div class="instructions">
+                <p>Minimum 7 players required to start</p>
+                <p>Maximum 20 players per room</p>
+                <p>Share the Room ID to invite players</p>
+                <p>All players must click "Ready" to begin</p>
+                <p>You can change game settings in the lobby</p>
+            </div>
+            
+            <button class="btn" style="margin-top: 30px;" onclick="goToLobby()">🚀 Go to Lobby</button>
+        </div>
+    </div>
+
+    <script>
+        // Get backend URL from localStorage or use default
+        const BACKEND_URL = localStorage.getItem('backendUrl') || "https://script.google.com/macros/s/AKfycbzgLkQWDLF8EkLdgMcZ8-OyBO31vjcGSMfDsmWczjsn3IKdJTEz0HSvId2wttyr0ltPYQ/exec";
+        let roomData = {};
+        let roomId = '';
+        
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+        
+        async function createRoom() {
+            const hostName = document.getElementById('hostName').value.trim();
+            
+            // Validate input
+            if (!hostName) {
+                showError('Please enter your name');
+                return;
+            }
+            
+            if (hostName.length < 2) {
+                showError('Name must be at least 2 characters');
+                return;
+            }
+            
+            if (hostName.length > 20) {
+                showError('Name must be less than 20 characters');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('createBtn').disabled = true;
+            hideError();
+            hideSuccess();
+            
+            try {
+                // Call backend API
+                const response = await fetch(`${BACKEND_URL}?action=createRoom&hostName=${encodeURIComponent(hostName)}`);
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('createBtn').disabled = false;
+                
+                if (data.success) {
+                    roomData = data;
+                    roomId = data.roomId;
+                    
+                    // Store data in localStorage
+                    localStorage.setItem('hostId', data.hostId);
+                    localStorage.setItem('playerId', data.playerId);
+                    localStorage.setItem('playerName', hostName);
+                    localStorage.setItem('isHost', 'true');
+                    localStorage.setItem('roomId', data.roomId);
+                    
+                    // Show room info
+                    document.getElementById('roomIdDisplay').textContent = data.roomId;
+                    document.getElementById('roomInfo').style.display = 'block';
+                    
+                    // Scroll to room info
+                    document.getElementById('roomInfo').scrollIntoView({ behavior: 'smooth' });
+                    
+                    showSuccess('Room created successfully!');
+                } else {
+                    showError(data.error || 'Failed to create room');
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('createBtn').disabled = false;
+                showError('Network error: ' + error.message);
+            }
+        }
+        
+        function copyRoomId() {
+            if (!roomId) return;
+            
+            navigator.clipboard.writeText(roomId)
+                .then(() => {
+                    showSuccess('Room ID copied to clipboard!');
+                })
+                .catch(err => {
+                    showError('Failed to copy: ' + err);
+                });
+        }
+        
+        function shareOnWhatsApp() {
+            if (!roomId) return;
+            
+            const text = `Join my Police & Thief game! Room ID: ${roomId}\n\nPlay at: ${window.location.origin}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+        
+        function shareOnTelegram() {
+            if (!roomId) return;
+            
+            const text = `Join my Police & Thief game! Room ID: ${roomId}\n\nPlay at: ${window.location.origin}`;
+            const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+        
+        function goToLobby() {
+            window.location.href = 'lobby.html';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        function hideSuccess() {
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        // Enter key to submit
+        document.getElementById('hostName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                createRoom();
+            }
+        });
+        
+        // Focus on input when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('hostName').focus();
+        });
+    </script>
+</body>
+</html>
