@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police & Thief - Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-info {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .info-card {
+            padding: 20px 30px;
+            background: rgba(142, 45, 226, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(142, 45, 226, 0.3);
+            text-align: center;
+            min-width: 160px;
+        }
+
+        .info-label {
+            font-size: 1rem;
+            color: #b0b0d0;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #8e2de2;
+            text-shadow: 0 0 10px rgba(142, 45, 226, 0.5);
+        }
+
+        .phase-indicator {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 2px solid rgba(142, 45, 226, 0.3);
+            min-width: 300px;
+        }
+
+        .phase-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #8e2de2, #4a00e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .phase-description {
+            color: #b0b0d0;
+            font-size: 1.1rem;
+        }
+
+        .timer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ff416c;
+            text-align: center;
+            margin-top: 10px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1;
+                text-shadow: 0 0 20px rgba(255, 65, 108, 0.5);
+            }
+            50% { 
+                opacity: 0.7;
+                text-shadow: 0 0 30px rgba(255, 65, 108, 0.8);
+            }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .game-info {
+                justify-content: center;
+            }
+        }
+
+        .game-area {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .role-display {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            border: 3px solid rgba(142, 45, 226, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-display:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(142, 45, 226, 0.1), transparent);
+            z-index: 0;
+        }
+
+        .role-label {
+            font-size: 1.3rem;
+            color: #b0b0d0;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .role-name {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 25px 0;
+            text-shadow: 0 0 30px rgba(142, 45, 226, 0.7);
+            position: relative;
+            z-index: 1;
+        }
+
+        .role-description {
+            color: #b0b0d0;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 0 auto 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .action-section {
+            margin-top: 40px;
+        }
+
+        .players-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .player-select-card {
+            background: rgba(0, 123, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid rgba(0, 123, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-select-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(0, 123, 255, 0.5);
+        }
+
+        .player-select-card:hover {
+            transform: translateY(-5px);
+            background: rgba(0, 123, 255, 0.3);
+            border-color: rgba(0, 123, 255, 0.5);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.2);
+        }
+
+        .player-select-card.selected {
+            background: rgba(40, 167, 69, 0.3);
+            border-color: rgba(40, 167, 69, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .player-select-card.selected:before {
+            background: #28a745;
+        }
+
+        .player-select-card:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .player-select-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .action-btn {
+            padding: 20px 40px;
+            font-size: 1.3rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            min-width: 180px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+            color: white;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 176, 155, 0.4);
+        }
+
+        .btn-skip {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-skip:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            height: fit-content;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: #8e2de2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .instructions {
+            background: rgba(142, 45, 226, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid rgba(142, 45, 226, 0.3);
+        }
+
+        .instructions h4 {
+            margin-bottom: 15px;
+            color: #8e2de2;
+            font-size: 1.2rem;
+        }
+
+        .instructions p {
+            color: #b0b0d0;
+            line-height: 1.6;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .status-list {
+            list-style: none;
+        }
+
+        .status-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-name {
+            color: #b0b0d0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-value {
+            color: #8e2de2;
+            font-weight: bold;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #ffc107;
+            box-shadow: 0 0 10px #ffc107;
+        }
+
+        .status-completed {
+            background: #28a745;
+            box-shadow: 0 0 10px #28a745;
+        }
+
+        .status-waiting {
+            background: #6c757d;
+            box-shadow: 0 0 10px #6c757d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #8e2de2;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px 30px;
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+            border-radius: 10px;
+            animation: slideIn 0.3s;
+            z-index: 1000;
+            display: none;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .notification.error {
+            background: rgba(220, 53, 69, 0.9);
+        }
+
+        .notification.info {
+            background: rgba(23, 162, 184, 0.9);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .hide-role-btn {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hide-role-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .role-hidden {
+            filter: blur(8px);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .spy-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .spy-input-group {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .spy-input-group label {
+            display: block;
+            margin-bottom: 12px;
+            color: #b0b0d0;
+            font-size: 1.1rem;
+        }
+
+        .spy-input-group select {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .spy-input-group select:focus {
+            outline: none;
+            border-color: #8e2de2;
+            box-shadow: 0 0 20px rgba(142, 45, 226, 0.3);
+        }
+
+        .spy-input-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .phase-actions {
+            display: none;
+        }
+
+        .phase-actions.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .waiting-message {
+            text-align: center;
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .waiting-message h3 {
+            color: #8e2de2;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .waiting-message p {
+            color: #b0b0d0;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .role-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 123, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 15px;
+            border: 2px solid rgba(0, 123, 255, 0.5);
+        }
+
+        .player-avatar.selected {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: rgba(40, 167, 69, 0.5);
+        }
+
+        .role-specific {
+            display: none;
+        }
+
+        .role-specific.active {
+            display: block;
+        }
+
+        .ability-description {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #8e2de2;
+        }
+
+        .ability-description h4 {
+            color: #8e2de2;
+            margin-bottom: 10px;
+        }
+
+        .phase-progress {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .phase-progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, #8e2de2, #4a00e0);
+            border-radius: 3px;
+            transition: width 1s linear;
+        }
+
+        .instructions-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .instructions-list li {
+            padding: 10px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #b0b0d0;
+        }
+
+        .instructions-list li:before {
+            content: "•";
+            color: #8e2de2;
+            position: absolute;
+            left: 0;
+            font-size: 1.5rem;
+        }
+
+        .skip-info {
+            text-align: center;
+            color: #b0b0d0;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        .game-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="game-info">
+                <div class="info-card">
+                    <div class="info-label">Cycle</div>
+                    <div class="info-value" id="cycleNumber">1</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Phase</div>
+                    <div class="info-value" id="phaseNumber">1</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Time Left</div>
+                    <div class="timer" id="timer">00:00</div>
+                </div>
+            </div>
+            
+            <div class="phase-indicator">
+                <div class="phase-title" id="phaseTitle">Role Reveal</div>
+                <div class="phase-description" id="phaseDescription">View your secret role</div>
+                <div class="phase-progress">
+                    <div class="phase-progress-bar" id="phaseProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="game-area">
+                <div class="role-display" id="roleDisplay">
+                    <div class="role-label">Your Secret Role</div>
+                    <div class="role-name" id="roleName">Loading...</div>
+                    <div class="role-description" id="roleDescription">Your role abilities will appear here</div>
+                    <button class="hide-role-btn" onclick="toggleRoleVisibility()" id="hideRoleBtn">👁️ Hide Role</button>
+                </div>
+                
+                <div id="loadingSection" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading game state...</p>
+                </div>
+                
+                <!-- Phase 1: Role Reveal -->
+                <div id="phase1Actions" class="phase-actions">
+                    <div class="waiting-message">
+                        <div class="role-icon">🎭</div>
+                        <h3>Phase 1: Role Reveal</h3>
+                        <p>Study your role and prepare for the next phase.</p>
+                        <p>The game will automatically proceed to Phase 2.</p>
+                        <div class="ability-description">
+                            <h4>📋 What to do:</h4>
+                            <ul class="instructions-list">
+                                <li>Memorize your role and special abilities</li>
+                                <li>Understand how your role interacts with others</li>
+                                <li>Prepare your strategy for upcoming phases</li>
+                                <li>Wait for all players to complete this phase</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 2: Minister & Jester -->
+                <div id="phase2Actions" class="phase-actions">
+                    <h3 class="section-title">🔍 Minister & Jester Phase</h3>
+                    <div class="role-specific" id="phase2Minister">
+                        <div class="ability-description">
+                            <h4>👨‍⚖️ Minister Ability</h4>
+                            <p>As the Minister, you can secretly view one player's true role. This information will be sent to the Police to help catch the Thief.</p>
+                            <p><strong>Bonus:</strong> If the Police catches the Thief using your information, you get +100 bonus points!</p>
+                        </div>
+                        <p>Select a player to see their role:</p>
+                        <div class="players-list" id="phase2PlayersList"></div>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-submit" onclick="submitPhase2Action()" id="phase2SubmitBtn" disabled>Submit Selection</button>
+                            <button class="action-btn btn-skip" onclick="skipPhase2Action()">Skip</button>
+                        </div>
+                        <p class="skip-info">You can skip if you don't want to use your ability this round</p>
+                    </div>
+                    <div class="role-specific" id="phase2Jester">
+                        <div class="ability-description">
+                            <h4>🤡 Jester Ability</h4>
+                            <p>As the Jester, you send misleading information about one player to the Police. Choose wisely to confuse the Police!</p>
+                            <p><strong>Bonus:</strong> If the Knight protects the Thief, you get +400 bonus points!</p>
+                        </div>
+                        <p>Select a player to send misleading info about:</p>
+                        <div class="players-list" id="phase2JesterPlayersList"></div>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-submit" onclick="submitPhase2Action()" id="phase2JesterSubmitBtn" disabled>Submit Selection</button>
+                            <button class="action-btn btn-skip" onclick="skipPhase2Action()">Skip</button>
+                        </div>
+                        <p class="skip-info">You can skip if you don't want to use your ability this round</p>
+                    </div>
+                    <div class="role-specific" id="phase2Other">
+                        <div class="waiting-message">
+                            <div class="role-icon">⏳</div>
+                            <h3>Waiting for Minister and Jester...</h3>
+                            <p>Only the Minister and Jester can take actions in this phase.</p>
+                            <p>Minister: Can view one player's true role</p>
+                            <p>Jester: Sends misleading information to Police</p>
+                            <p>Please wait while they make their choices...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 3: Spy -->
+                <div id="phase3Actions" class="phase-actions">
+                    <h3 class="section-title">🕵️ Spy Phase</h3>
+                    <div class="role-specific" id="phase3Spy">
+                        <div class="ability-description">
+                            <h4>🕵️ Spy Ability</h4>
+                            <p>As the Spy, you can try to predict who the Minister and Jester are. Correct predictions give you bonus points and block their bonuses!</p>
+                            <p><strong>Bonuses:</strong> +100 for one correct prediction, +200 for both correct</p>
+                            <p><strong>Blocking:</strong> If you correctly predict Minister/Jester, their bonus is cancelled!</p>
+                        </div>
+                        <div class="spy-inputs" id="spyInputs">
+                            <!-- Generated dynamically -->
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-submit" onclick="submitPhase3Action()" id="phase3SubmitBtn" disabled>Submit Predictions</button>
+                            <button class="action-btn btn-skip" onclick="skipPhase3Action()">Skip</button>
+                        </div>
+                        <p class="skip-info">You can skip if you don't want to make predictions this round</p>
+                    </div>
+                    <div class="role-specific" id="phase3Other">
+                        <div class="waiting-message">
+                            <div class="role-icon">⏳</div>
+                            <h3>Waiting for Spy...</h3>
+                            <p>Only the Spy can take actions in this phase.</p>
+                            <p>The Spy is trying to predict who the Minister and Jester are.</p>
+                            <p>Correct predictions give bonuses and block Minister/Jester bonuses.</p>
+                            <p>Please wait while the Spy makes their predictions...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 4: Police & Knight -->
+                <div id="phase4Actions" class="phase-actions">
+                    <h3 class="section-title" id="phase4Title">👮 Police & Knight Phase</h3>
+                    <div class="role-specific" id="phase4Police">
+                        <div class="ability-description">
+                            <h4>👮 Police Ability</h4>
+                            <p>As the Police, you must predict who the Thief is. This is your most important decision!</p>
+                            <p><strong>Success:</strong> +900 points if correct</p>
+                            <p><strong>Failure:</strong> -900 points if wrong or no prediction</p>
+                            <p>You will receive information from the Minister (true) and Jester (misleading)</p>
+                        </div>
+                        <p>Select who you think is the Thief:</p>
+                        <div class="players-list" id="phase4PolicePlayersList"></div>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-submit" onclick="submitPhase4Action()" id="phase4PoliceSubmitBtn" disabled>Submit Prediction</button>
+                            <button class="action-btn btn-skip" onclick="skipPhase4Action()">Skip</button>
+                        </div>
+                        <p class="skip-info">Warning: Skipping counts as wrong prediction (-900 points)</p>
+                    </div>
+                    <div class="role-specific" id="phase4Knight">
+                        <div class="ability-description">
+                            <h4>🗡️ Knight Ability</h4>
+                            <p>As the Knight, you can protect one player from being caught. If you protect the Thief, you both get bonuses!</p>
+                            <p><strong>Protection Bonus:</strong> +300 points if protecting Thief</p>
+                            <p><strong>Thief Survival:</strong> If you protect Thief and Police guesses wrong, Thief gets +900</p>
+                        </div>
+                        <p>Select a player to protect:</p>
+                        <div class="players-list" id="phase4KnightPlayersList"></div>
+                        <div class="action-buttons">
+                            <button class="action-btn btn-submit" onclick="submitPhase4Action()" id="phase4KnightSubmitBtn" disabled>Submit Protection</button>
+                            <button class="action-btn btn-skip" onclick="skipPhase4Action()">Skip</button>
+                        </div>
+                        <p class="skip-info">You can skip if you don't want to protect anyone this round</p>
+                    </div>
+                    <div class="role-specific" id="phase4Other">
+                        <div class="waiting-message">
+                            <div class="role-icon">⏳</div>
+                            <h3>Waiting for Police and Knight...</h3>
+                            <p>Only the Police and Knight can take actions in this phase.</p>
+                            <p>Police: Trying to catch the Thief (+900/-900)</p>
+                            <p>Knight: Protecting players from being caught</p>
+                            <p>Please wait while they make their decisions...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <h3 class="sidebar-title">📊 Game Status</h3>
+                
+                <div class="instructions">
+                    <h4>🎯 Current Phase Instructions</h4>
+                    <p id="phaseInstructions">Loading instructions...</p>
+                    <div class="phase-progress">
+                        <div class="phase-progress-bar" id="sidebarProgressBar" style="width: 0%"></div>
+                    </div>
+                    <p id="timeRemainingText">Time remaining: --:--</p>
+                </div>
+                
+                <div class="instructions">
+                    <h4>🎭 Your Role Abilities</h4>
+                    <p id="roleAbilities">Loading abilities...</p>
+                    <p id="roleScore">Base Score: --</p>
+                </div>
+                
+                <div class="instructions">
+                    <h4>👥 Players in Game</h4>
+                    <ul class="status-list" id="playersStatusList">
+                        <!-- Generated dynamically -->
+                    </ul>
+                </div>
+                
+                <div class="instructions">
+                    <h4>📈 Phase Progress</h4>
+                    <ul class="status-list">
+                        <li class="status-item">
+                            <span class="status-name"><span class="status-dot status-pending"></span> Phase 1: Role Reveal</span>
+                            <span class="status-value" id="phase1Status">Pending</span>
+                        </li>
+                        <li class="status-item">
+                            <span class="status-name"><span class="status-dot status-pending"></span> Phase 2: Minister/Jester</span>
+                            <span class="status-value" id="phase2Status">Pending</span>
+                        </li>
+                        <li class="status-item">
+                            <span class="status-name"><span class="status-dot status-pending"></span> Phase 3: Spy</span>
+                            <span class="status-value" id="phase3Status">Pending</span>
+                        </li>
+                        <li class="status-item">
+                            <span class="status-name"><span class="status-dot status-pending"></span> Phase 4: Police/Knight</span>
+                            <span class="status-value" id="phase4Status">Pending</span>
+                        </li>
+                        <li class="status-item">
+                            <span class="status-name"><span class="status-dot status-pending"></span> Results</span>
+                            <span class="status-value" id="resultsStatus">Pending</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-controls">
+            <button class="control-btn" onclick="refreshGameState()">🔄 Refresh</button>
+            <button class="control-btn" onclick="leaveGame()">🚪 Leave Game</button>
+        </div>
+    </div>
+
+    <script>
+        // Get backend URL from localStorage
+        const BACKEND_URL = localStorage.getItem('backendUrl') || "https://script.google.com/macros/s/AKfycbzgLkQWDLF8EkLdgMcZ8-OyBO31vjcGSMfDsmWczjsn3IKdJTEz0HSvId2wttyr0ltPYQ/exec";
+        
+        // Game state variables
+        let gameState = {};
+        let playerRole = '';
+        let selectedPlayerId = null;
+        let spyPredictions = { minister: null, jester: null };
+        let timerInterval = null;
+        let timeRemaining = 0;
+        let pollInterval = null;
+        let hostId = '';
+        let playerId = '';
+        let playerName = '';
+        let isHost = false;
+        let phaseStartTime = Date.now();
+        let phaseDuration = 0;
+        
+        // Phase configurations
+        const phases = {
+            1: {
+                title: 'Role Reveal',
+                description: 'View your secret role',
+                instructions: 'Memorize your role and abilities. The next phase will begin automatically when all players are ready.',
+                duration: 0, // No timer for phase 1
+                icon: '🎭'
+            },
+            2: {
+                title: 'Minister & Jester Phase',
+                description: 'Minister sees a role, Jester sends wrong info',
+                instructions: 'Minister: Select a player to see their role. Jester: Select a player to send wrong info to Police.',
+                duration: 60, // 60 seconds
+                icon: '🔍'
+            },
+            3: {
+                title: 'Spy Phase',
+                description: 'Predict Minister and Jester',
+                instructions: 'Spy: Predict who is the Minister and Jester. Correct predictions give bonus points and block bonuses.',
+                duration: 60, // 60 seconds
+                icon: '🕵️'
+            },
+            4: {
+                title: 'Police & Knight Phase',
+                description: 'Police predicts Thief, Knight protects',
+                instructions: 'Police: Predict who is the Thief. Knight: Protect a player from being caught.',
+                duration: 120, // 120 seconds
+                icon: '👮'
+            },
+            5: {
+                title: 'Results',
+                description: 'View results and scores',
+                instructions: 'All roles are revealed. Scores are calculated and added to totals.',
+                duration: 0,
+                icon: '📊'
+            }
+        };
+        
+        // Role descriptions and scores
+        const roleInfo = {
+            'King': { 
+                score: 1000,
+                description: 'The ruler with the highest base score. No special abilities.',
+                abilities: 'No special abilities.'
+            },
+            'Knight': { 
+                score: 600,
+                description: 'Can protect one player each round. Earns bonus if protecting Thief.',
+                abilities: 'Phase 4: Protect one player. +300 bonus if protecting Thief.'
+            },
+            'Minister': { 
+                score: 700,
+                description: 'Can secretly view one player\'s role. Information helps Police.',
+                abilities: 'Phase 2: View one player\'s role. +100 bonus if Police catches Thief.'
+            },
+            'Spy': { 
+                score: 650,
+                description: 'Can predict Minister and Jester. Blocks their bonuses if correct.',
+                abilities: 'Phase 3: Predict Minister and Jester. +100/+200 bonus for correct predictions.'
+            },
+            'Police': { 
+                score: 900,
+                description: 'Must catch the Thief. High risk, high reward.',
+                abilities: 'Phase 4: Predict the Thief. +900 if correct, -900 if wrong.'
+            },
+            'Jester': { 
+                score: 400,
+                description: 'Sends misleading information to Police. Earns bonus if Thief survives.',
+                abilities: 'Phase 2: Send misleading info. +400 bonus if Knight protects Thief.'
+            },
+            'Thief': { 
+                score: 0,
+                description: 'Must avoid detection. Wins big if undetected.',
+                abilities: '+900 bonus if undetected by Police.'
+            },
+            'Queen': { 
+                score: 800,
+                description: 'High-ranking role with no special abilities.',
+                abilities: 'No special abilities.'
+            },
+            'Prince': { 
+                score: 750,
+                description: 'Royal role with no special abilities.',
+                abilities: 'No special abilities.'
+            },
+            'Treasurer': { 
+                score: 550,
+                description: 'Wealthy role with no special abilities.',
+                abilities: 'No special abilities.'
+            },
+            'Citizen': { 
+                score: 200,
+                description: 'Ordinary citizen with no special abilities.',
+                abilities: 'No special abilities.'
+            }
+        };
+        
+        // Initialize game
+        window.onload = async function() {
+            // Get data from localStorage
+            hostId = localStorage.getItem('hostId');
+            playerId = localStorage.getItem('playerId');
+            playerName = localStorage.getItem('playerName');
+            isHost = localStorage.getItem('isHost') === 'true';
+            
+            if (!hostId || !playerId) {
+                showNotification('Missing game data. Please rejoin the game.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                return;
+            }
+            
+            // Start polling for game state
+            startGamePolling();
+            
+            // Initial game state fetch
+            await fetchGameState();
+        };
+        
+        function startGamePolling() {
+            // Poll every 3 seconds
+            pollInterval = setInterval(fetchGameState, 3000);
+        }
+        
+        async function fetchGameState() {
+            try {
+                const response = await fetch(`${BACKEND_URL}?action=getGameState&hostId=${hostId}&playerId=${playerId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    handleGameState(data);
+                } else {
+                    showNotification('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Game state fetch error:', error);
+            }
+        }
+        
+        function refreshGameState() {
+            showNotification('Refreshing game state...', 'info');
+            fetchGameState();
+        }
+        
+        function handleGameState(data) {
+            gameState = data;
+            
+            // Update UI with game state
+            updateGameUI();
+            
+            // Start/update timer if needed
+            if (data.currentPhase !== 1 && data.timeRemaining > 0) {
+                updateTimer(data.timeRemaining);
+            }
+            
+            // Check if phase changed
+            if (data.currentPhase === 5) {
+                // Game complete, redirect to results
+                clearInterval(pollInterval);
+                clearInterval(timerInterval);
+                setTimeout(() => {
+                    window.location.href = 'results.html';
+                }, 2000);
+            }
+        }
+        
+        function updateGameUI() {
+            // Update basic info
+            document.getElementById('cycleNumber').textContent = gameState.currentCycle;
+            document.getElementById('phaseNumber').textContent = gameState.currentPhase;
+            
+            // Update phase info
+            const phase = phases[gameState.currentPhase];
+            if (phase) {
+                document.getElementById('phaseTitle').textContent = phase.title;
+                document.getElementById('phaseDescription').textContent = phase.description;
+                document.getElementById('phaseInstructions').textContent = phase.instructions;
+                
+                // Update phase status indicators
+                updatePhaseStatusIndicators(gameState.currentPhase);
+            }
+            
+            // Update role display
+            if (gameState.playerRole) {
+                playerRole = gameState.playerRole;
+                const role = roleInfo[playerRole] || { score: 0, description: 'Unknown role', abilities: 'No abilities' };
+                
+                document.getElementById('roleName').textContent = playerRole;
+                document.getElementById('roleDescription').textContent = role.description;
+                document.getElementById('roleAbilities').textContent = role.abilities;
+                document.getElementById('roleScore').textContent = `Base Score: ${role.score}`;
+            }
+            
+            // Update players status list
+            updatePlayersStatusList();
+            
+            // Show appropriate phase actions
+            showPhaseActions(gameState.currentPhase);
+            
+            // Hide loading
+            document.getElementById('loadingSection').style.display = 'none';
+            
+            // Update progress bars
+            updateProgressBars();
+        }
+        
+        function showPhaseActions(phase) {
+            // Hide all phase actions
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`phase${i}Actions`).classList.remove('active');
+            }
+            
+            // Hide all role-specific sections
+            document.querySelectorAll('.role-specific').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Show appropriate phase actions
+            const phaseElement = document.getElementById(`phase${phase}Actions`);
+            if (phaseElement) {
+                phaseElement.classList.add('active');
+                
+                // Initialize phase-specific UI
+                switch(phase) {
+                    case 1:
+                        initPhase1UI();
+                        break;
+                    case 2:
+                        initPhase2UI();
+                        break;
+                    case 3:
+                        initPhase3UI();
+                        break;
+                    case 4:
+                        initPhase4UI();
+                        break;
+                }
+            }
+        }
+        
+        function initPhase1UI() {
+            // Phase 1 is just waiting
+            // Nothing to initialize
+        }
+        
+        function initPhase2UI() {
+            // Show appropriate role section
+            if (playerRole === 'Minister') {
+                document.getElementById('phase2Minister').style.display = 'block';
+                createPlayerSelectionList('phase2PlayersList', false, true);
+            } else if (playerRole === 'Jester') {
+                document.getElementById('phase2Jester').style.display = 'block';
+                createPlayerSelectionList('phase2JesterPlayersList', false, true);
+            } else {
+                document.getElementById('phase2Other').style.display = 'block';
+            }
+            
+            // Check if already submitted
+            const alreadySubmitted = (playerRole === 'Minister' && gameState.phaseData.ministerChoice) ||
+                                    (playerRole === 'Jester' && gameState.phaseData.jesterChoice);
+            
+            if (alreadySubmitted) {
+                const submitBtn = playerRole === 'Minister' ? 
+                    document.getElementById('phase2SubmitBtn') : 
+                    document.getElementById('phase2JesterSubmitBtn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Already Submitted';
+                }
+            }
+        }
+        
+        function initPhase3UI() {
+            if (playerRole === 'Spy') {
+                document.getElementById('phase3Spy').style.display = 'block';
+                createSpyPredictionInputs();
+            } else {
+                document.getElementById('phase3Other').style.display = 'block';
+            }
+            
+            // Check if already submitted
+            if (playerRole === 'Spy' && gameState.phaseData.spyPredictions) {
+                const submitBtn = document.getElementById('phase3SubmitBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Already Submitted';
+                
+                try {
+                    const predictions = JSON.parse(gameState.phaseData.spyPredictions);
+                    if (predictions.minister) {
+                        document.getElementById('ministerPrediction').value = predictions.minister;
+                    }
+                    if (predictions.jester) {
+                        document.getElementById('jesterPrediction').value = predictions.jester;
+                    }
+                } catch (e) {
+                    console.error('Error parsing spy predictions:', e);
+                }
+            }
+        }
+        
+        function initPhase4UI() {
+            // Update title
+            document.getElementById('phase4Title').textContent = playerRole === 'Police' ? 
+                '👮 Police Phase' : playerRole === 'Knight' ? '🗡️ Knight Phase' : '👮 Police & Knight Phase';
+            
+            if (playerRole === 'Police') {
+                document.getElementById('phase4Police').style.display = 'block';
+                createPlayerSelectionList('phase4PolicePlayersList', true, false);
+            } else if (playerRole === 'Knight') {
+                document.getElementById('phase4Knight').style.display = 'block';
+                createPlayerSelectionList('phase4KnightPlayersList', false, true);
+            } else {
+                document.getElementById('phase4Other').style.display = 'block';
+            }
+            
+            // Check if already submitted
+            const alreadySubmitted = (playerRole === 'Police' && gameState.phaseData.policeChoice) ||
+                                    (playerRole === 'Knight' && gameState.phaseData.knightChoice);
+            
+            if (alreadySubmitted) {
+                const submitBtn = playerRole === 'Police' ? 
+                    document.getElementById('phase4PoliceSubmitBtn') : 
+                    document.getElementById('phase4KnightSubmitBtn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Already Submitted';
+                }
+            }
+        }
+        
+        function createPlayerSelectionList(containerId, excludeSelf = false, includeSelf = true) {
+            const container = document.getElementById(containerId);
+            if (!container || !gameState.players) return;
+            
+            container.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                // Skip conditions
+                if (excludeSelf && player.playerId === playerId) return;
+                if (!includeSelf && player.playerId === playerId) return;
+                
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-select-card';
+                playerCard.dataset.playerId = player.playerId;
+                playerCard.onclick = () => selectPlayer(player.playerId, playerCard);
+                
+                playerCard.innerHTML = `
+                    <div class="player-avatar">${player.name.charAt(0).toUpperCase()}</div>
+                    <div class="player-select-name">${player.name}</div>
+                `;
+                
+                container.appendChild(playerCard);
+            });
+        }
+        
+        function createSpyPredictionInputs() {
+            const container = document.getElementById('spyInputs');
+            if (!container || !gameState.players) return;
+            
+            container.innerHTML = `
+                <div class="spy-input-group">
+                    <label>Predict who is the Minister:</label>
+                    <select id="ministerPrediction" onchange="validateSpyInputs()">
+                        <option value="">Select Minister...</option>
+                        ${gameState.players.map(p => `<option value="${p.playerId}">${p.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="spy-input-group">
+                    <label>Predict who is the Jester:</label>
+                    <select id="jesterPrediction" onchange="validateSpyInputs()">
+                        <option value="">Select Jester...</option>
+                        ${gameState.players.map(p => `<option value="${p.playerId}">${p.name}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+        }
+        
+        function selectPlayer(playerId, element) {
+            // Deselect all cards in the same container
+            const container = element.parentElement;
+            container.querySelectorAll('.player-select-card').forEach(card => {
+                card.classList.remove('selected');
+                card.querySelector('.player-avatar').style.background = 'rgba(0, 123, 255, 0.2)';
+                card.querySelector('.player-avatar').style.borderColor = 'rgba(0, 123, 255, 0.5)';
+            });
+            
+            // Select clicked card
+            element.classList.add('selected');
+            element.querySelector('.player-avatar').style.background = 'rgba(40, 167, 69, 0.2)';
+            element.querySelector('.player-avatar').style.borderColor = 'rgba(40, 167, 69, 0.5)';
+            selectedPlayerId = playerId;
+            
+            // Enable submit button based on current phase
+            const currentPhase = gameState.currentPhase;
+            if (currentPhase === 2) {
+                const submitBtn = playerRole === 'Minister' ? 
+                    document.getElementById('phase2SubmitBtn') : 
+                    document.getElementById('phase2JesterSubmitBtn');
+                if (submitBtn) submitBtn.disabled = false;
+            } else if (currentPhase === 4) {
+                const submitBtn = playerRole === 'Police' ? 
+                    document.getElementById('phase4PoliceSubmitBtn') : 
+                    document.getElementById('phase4KnightSubmitBtn');
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+        
+        function validateSpyInputs() {
+            const ministerPred = document.getElementById('ministerPrediction')?.value;
+            const jesterPred = document.getElementById('jesterPrediction')?.value;
+            
+            if (!ministerPred && !jesterPred) {
+                document.getElementById('phase3SubmitBtn').disabled = true;
+                return;
+            }
+            
+            // Store predictions
+            spyPredictions.minister = ministerPred || '';
+            spyPredictions.jester = jesterPred || '';
+            
+            // Enable submit button
+            document.getElementById('phase3SubmitBtn').disabled = false;
+        }
+        
+        async function submitPhase2Action() {
+            if (!selectedPlayerId) {
+                showNotification('Please select a player first', 'error');
+                return;
+            }
+            
+            const actionData = {
+                target: selectedPlayerId
+            };
+            
+            await submitAction(2, actionData);
+        }
+        
+        async function skipPhase2Action() {
+            const actionData = {
+                target: ''
+            };
+            
+            await submitAction(2, actionData);
+        }
+        
+        async function submitPhase3Action() {
+            await submitAction(3, spyPredictions);
+        }
+        
+        async function skipPhase3Action() {
+            const actionData = {
+                minister: '',
+                jester: ''
+            };
+            
+            await submitAction(3, actionData);
+        }
+        
+        async function submitPhase4Action() {
+            if (!selectedPlayerId) {
+                showNotification('Please select a player first', 'error');
+                return;
+            }
+            
+            const actionData = {
+                target: selectedPlayerId
+            };
+            
+            await submitAction(4, actionData);
+        }
+        
+        async function skipPhase4Action() {
+            const actionData = {
+                target: ''
+            };
+            
+            await submitAction(4, actionData);
+        }
+        
+        async function submitAction(phase, actionData) {
+            try {
+                const response = await fetch(`${BACKEND_URL}?action=submitAction&hostId=${hostId}&playerId=${playerId}&phase=${phase}&actionData=${encodeURIComponent(JSON.stringify(actionData))}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Action submitted successfully!', 'success');
+                    
+                    // Disable submit button
+                    const phaseBtns = {
+                        2: playerRole === 'Minister' ? 'phase2SubmitBtn' : 'phase2JesterSubmitBtn',
+                        3: 'phase3SubmitBtn',
+                        4: playerRole === 'Police' ? 'phase4PoliceSubmitBtn' : 'phase4KnightSubmitBtn'
+                    };
+                    
+                    const btnId = phaseBtns[phase];
+                    if (btnId) {
+                        const btn = document.getElementById(btnId);
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.textContent = 'Submitted';
+                        }
+                    }
+                    
+                    // Refresh game state
+                    setTimeout(fetchGameState, 1000);
+                } else {
+                    showNotification('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Network error: ' + error.message, 'error');
+            }
+        }
+        
+        function updateTimer(seconds) {
+            timeRemaining = seconds;
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            // Update immediately
+            updateTimerDisplay();
+            
+            // Start countdown if time is positive
+            if (seconds > 0) {
+                timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        // Auto-refresh when timer ends
+                        fetchGameState();
+                    }
+                }, 1000);
+            }
+        }
+        
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update time remaining text
+            document.getElementById('timeRemainingText').textContent = 
+                `Time remaining: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update progress bars
+            updateProgressBars();
+        }
+        
+        function updateProgressBars() {
+            const phase = gameState.currentPhase;
+            const phaseDuration = phases[phase]?.duration || 0;
+            
+            if (phaseDuration > 0 && timeRemaining > 0) {
+                const progress = ((phaseDuration - timeRemaining) / phaseDuration) * 100;
+                document.getElementById('phaseProgressBar').style.width = `${progress}%`;
+                document.getElementById('sidebarProgressBar').style.width = `${progress}%`;
+            } else {
+                document.getElementById('phaseProgressBar').style.width = '0%';
+                document.getElementById('sidebarProgressBar').style.width = '0%';
+            }
+        }
+        
+        function updatePlayersStatusList() {
+            const statusList = document.getElementById('playersStatusList');
+            if (!statusList || !gameState.players) return;
+            
+            statusList.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                const item = document.createElement('li');
+                item.className = 'status-item';
+                
+                // Determine status based on phase and role
+                let status = 'Waiting';
+                let statusClass = 'status-waiting';
+                
+                if (gameState.currentPhase === 2 && (player.role === 'Minister' || player.role === 'Jester')) {
+                    const hasAction = (player.role === 'Minister' && gameState.phaseData?.ministerChoice) ||
+                                     (player.role === 'Jester' && gameState.phaseData?.jesterChoice);
+                    status = hasAction ? 'Completed' : 'Pending';
+                    statusClass = hasAction ? 'status-completed' : 'status-pending';
+                } else if (gameState.currentPhase === 3 && player.role === 'Spy') {
+                    const hasAction = gameState.phaseData?.spyPredictions;
+                    status = hasAction ? 'Completed' : 'Pending';
+                    statusClass = hasAction ? 'status-completed' : 'status-pending';
+                } else if (gameState.currentPhase === 4 && (player.role === 'Police' || player.role === 'Knight')) {
+                    const hasAction = (player.role === 'Police' && gameState.phaseData?.policeChoice) ||
+                                     (player.role === 'Knight' && gameState.phaseData?.knightChoice);
+                    status = hasAction ? 'Completed' : 'Pending';
+                    statusClass = hasAction ? 'status-completed' : 'status-pending';
+                }
+                
+                item.innerHTML = `
+                    <span class="status-name">${player.name}</span>
+                    <span class="status-value">${player.role || 'Unknown'}</span>
+                `;
+                
+                statusList.appendChild(item);
+            });
+        }
+        
+        function updatePhaseStatusIndicators(currentPhase) {
+            // Reset all phases to pending
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.querySelector(`#phase${i}Status`).previousElementSibling.querySelector('.status-dot');
+                const status = document.getElementById(`phase${i}Status`);
+                
+                dot.className = 'status-dot status-pending';
+                status.textContent = 'Pending';
+            }
+            
+            // Mark completed phases
+            for (let i = 1; i < currentPhase; i++) {
+                const dot = document.querySelector(`#phase${i}Status`).previousElementSibling.querySelector('.status-dot');
+                const status = document.getElementById(`phase${i}Status`);
+                
+                dot.className = 'status-dot status-completed';
+                status.textContent = 'Completed';
+            }
+            
+            // Mark current phase
+            if (currentPhase <= 4) {
+                const dot = document.querySelector(`#phase${currentPhase}Status`).previousElementSibling.querySelector('.status-dot');
+                const status = document.getElementById(`phase${currentPhase}Status`);
+                
+                dot.className = 'status-dot status-pending';
+                status.textContent = 'In Progress';
+            }
+            
+            // Mark results if phase 5
+            if (currentPhase === 5) {
+                const dot = document.querySelector('#resultsStatus').previousElementSibling.querySelector('.status-dot');
+                const status = document.getElementById('resultsStatus');
+                
+                dot.className = 'status-dot status-completed';
+                status.textContent = 'Ready';
+            }
+        }
+        
+        function toggleRoleVisibility() {
+            const roleName = document.getElementById('roleName');
+            const btn = document.getElementById('hideRoleBtn');
+            
+            if (roleName.classList.contains('role-hidden')) {
+                roleName.classList.remove('role-hidden');
+                btn.textContent = '👁️ Hide Role';
+                btn.title = 'Hide your role from others';
+            } else {
+                roleName.classList.add('role-hidden');
+                btn.textContent = '👁️ Show Role';
+                btn.title = 'Show your role (careful!)';
+            }
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification';
+            
+            if (type === 'error') {
+                notification.classList.add('error');
+            } else if (type === 'info') {
+                notification.classList.add('info');
+            }
+            
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        function leaveGame() {
+            if (confirm('Are you sure you want to leave the game?')) {
+                clearInterval(pollInterval);
+                clearInterval(timerInterval);
+                
+                // Clear game data from localStorage (but keep backend URL)
+                const backendUrl = localStorage.getItem('backendUrl');
+                localStorage.clear();
+                localStorage.setItem('backendUrl', backendUrl);
+                
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Page became visible again, refresh game state
+                refreshGameState();
+            }
+        });
+        
+        // Handle beforeunload
+        window.addEventListener('beforeunload', function() {
+            clearInterval(pollInterval);
+            clearInterval(timerInterval);
+        });
+    </script>
+</body>
+</html>
