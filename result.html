@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police & Thief | Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0f2e 0%, #1a1f4b 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .results-header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF, #FF1493);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .results-subtitle {
+            font-size: 1.4rem;
+            color: #A9B7D6;
+            margin-bottom: 10px;
+        }
+
+        .cycle-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(138, 43, 226, 0.1);
+            padding: 15px 30px;
+            border-radius: 50px;
+            margin-top: 20px;
+            border: 2px solid rgba(138, 43, 226, 0.3);
+        }
+
+        .cycle-badge {
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3);
+        }
+
+        .main-results {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 30px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+
+        @media (min-width: 992px) {
+            .main-results {
+                grid-template-columns: 1fr 400px;
+            }
+        }
+
+        .leaderboard-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            border: 2px solid rgba(138, 43, 226, 0.2);
+            animation: slideIn 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 2rem;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+        }
+
+        .leaderboard-row {
+            display: flex;
+            align-items: center;
+            padding: 25px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .leaderboard-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: linear-gradient(180deg, #8A2BE2, #00BFFF);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .leaderboard-row:hover::before {
+            opacity: 1;
+        }
+
+        .leaderboard-row:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateX(10px);
+        }
+
+        .leaderboard-row.me {
+            background: rgba(0, 191, 255, 0.1);
+            border-color: rgba(0, 191, 255, 0.3);
+        }
+
+        .rank {
+            font-size: 2.5rem;
+            font-weight: 900;
+            min-width: 80px;
+            text-align: center;
+            margin-right: 25px;
+        }
+
+        .rank-1 { color: #FFD700; }
+        .rank-2 { color: #C0C0C0; }
+        .rank-3 { color: #CD7F32; }
+        .rank-4 { color: #A9B7D6; }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .player-role {
+            color: #A9B7D6;
+            font-size: 1.1rem;
+        }
+
+        .player-score {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            min-width: 100px;
+            text-align: right;
+        }
+
+        .score-badge {
+            display: inline-block;
+            background: rgba(0, 191, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+            border: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .stats-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            border: 2px solid rgba(0, 191, 255, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(138, 43, 226, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 15px 0;
+        }
+
+        .stat-label {
+            color: #A9B7D6;
+            font-size: 1.1rem;
+        }
+
+        .role-performance {
+            margin-top: 40px;
+        }
+
+        .role-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .role-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .role-item:hover {
+            border-color: rgba(0, 191, 255, 0.3);
+        }
+
+        .role-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .role-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .role-score {
+            color: #A9B7D6;
+            font-size: 0.9rem;
+        }
+
+        .actions-section {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            margin-top: 40px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            border: none;
+            color: white;
+            padding: 25px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 200px;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(138, 43, 226, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            border: 3px solid rgba(138, 43, 226, 0.5);
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(138, 43, 226, 0.1);
+        }
+
+        .winner-banner {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1));
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+            to { box-shadow: 0 0 40px rgba(255, 215, 0, 0.6); }
+        }
+
+        .winner-title {
+            font-size: 1.8rem;
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+
+        .winner-name {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #00BFFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .results-title {
+                font-size: 2.5rem;
+            }
+            
+            .main-results {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .rank {
+                min-width: 60px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="results-header">
+        <h1 class="results-title">GAME RESULTS</h1>
+        <p class="results-subtitle">Final Scores and Rankings</p>
+        <div class="cycle-info">
+            <div class="cycle-badge" id="finalCycle">3</div>
+            <span>Cycles Completed</span>
+        </div>
+    </div>
+
+    <div class="main-results">
+        <div class="leaderboard-section">
+            <h2 class="section-title">LEADERBOARD</h2>
+            
+            <div class="winner-banner" id="winnerBanner" style="display: none;">
+                <div class="winner-title">🏆 WINNER 🏆</div>
+                <div class="winner-name" id="winnerName">Player Name</div>
+            </div>
+
+            <div class="leaderboard" id="leaderboard">
+                <!-- Leaderboard will be populated here -->
+                <div class="loader" id="leaderboardLoader"></div>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h2 class="section-title">GAME STATISTICS</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Players</div>
+                    <div class="stat-value" id="totalPlayers">0</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Thief Escapes</div>
+                    <div class="stat-value" id="thiefEscapes">0</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Spy Success</div>
+                    <div class="stat-value" id="spySuccess">0%</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Avg Score</div>
+                    <div class="stat-value" id="avgScore">0</div>
+                </div>
+            </div>
+
+            <div class="role-performance">
+                <h3 style="color: #A9B7D6; margin-bottom: 20px;">Role Performance</h3>
+                <div class="role-list" id="rolePerformance">
+                    <!-- Role performance will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-section">
+            <h2 class="section-title">WHAT'S NEXT?</h2>
+            <p style="color: #A9B7D6; margin-bottom: 30px; font-size: 1.2rem; line-height: 1.6;">
+                The game has concluded. You can review the results below or start a new adventure.
+            </p>
+            
+            <div class="action-buttons">
+                <button class="action-btn" onclick="playAgain()">
+                    🎮 Play Again
+                </button>
+                <button class="action-btn secondary" onclick="returnToLobby()">
+                    👥 Return to Lobby
+                </button>
+                <button class="action-btn secondary" onclick="newGame()">
+                    🏁 New Game
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxABRna3pXd-hn6Zx8YliHR_GiZZTpZNk9skuh-MC0kbrL3FWaSR0y0mWPPB7b6W0YM/exec";
+
+        // Get session data
+        const hostId = localStorage.getItem('host_id');
+        const myName = localStorage.getItem('player_name');
+
+        // Redirect if no session
+        if (!hostId || !myName) {
+            window.location.href = 'index.html';
+        }
+
+        // Mock data for demonstration
+        const mockLeaderboard = [
+            { player: "Alice", role: "Police", score: 245 },
+            { player: "Bob", role: "Thief", score: 220 },
+            { player: "Charlie", role: "Spy", score: 210 },
+            { player: "Diana", role: "Minister", score: 195 },
+            { player: "Eve", role: "Jester", score: 180 },
+            { player: "Frank", role: "Knight", score: 175 }
+        ];
+
+        // Load results
+        function loadResults() {
+            const loader = document.getElementById('leaderboardLoader');
+            
+            // In a real implementation, this would fetch from API
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'GET_RESULTS',
+                    host_id: hostId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Fallback to mock data for demo
+                    renderLeaderboard(mockLeaderboard);
+                    calculateStats(mockLeaderboard);
+                    return;
+                }
+                renderLeaderboard(data.leaderboard || mockLeaderboard);
+                calculateStats(data.leaderboard || mockLeaderboard);
+            })
+            .catch(error => {
+                console.error('Error loading results:', error);
+                // Fallback to mock data
+                renderLeaderboard(mockLeaderboard);
+                calculateStats(mockLeaderboard);
+            })
+            .finally(() => {
+                loader.style.display = 'none';
+            });
+        }
+
+        // Render leaderboard
+        function renderLeaderboard(players) {
+            const leaderboardEl = document.getElementById('leaderboard');
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+            
+            // Show winner banner
+            if (sortedPlayers.length > 0) {
+                const winnerBanner = document.getElementById('winnerBanner');
+                const winnerName = document.getElementById('winnerName');
+                winnerName.textContent = sortedPlayers[0].player;
+                winnerBanner.style.display = 'block';
+            }
+            
+            leaderboardEl.innerHTML = '';
+            
+            sortedPlayers.forEach((player, index) => {
+                const row = document.createElement('div');
+                row.className = `leaderboard-row ${player.player === myName ? 'me' : ''}`;
+                row.innerHTML = `
+                    <div class="rank rank-${index + 1}">${index + 1}</div>
+                    <div class="player-info">
+                        <div class="player-name">
+                            ${player.player}
+                            ${player.player === myName ? '<span class="score-badge">YOU</span>' : ''}
+                        </div>
+                        <div class="player-role">Role: ${player.role || 'Unknown'}</div>
+                    </div>
+                    <div class="player-score">${player.score}</div>
+                `;
+                leaderboardEl.appendChild(row);
+            });
+        }
+
+        // Calculate statistics
+        function calculateStats(players) {
+            const totalPlayers = players.length;
+            const totalScore = players.reduce((sum, p) => sum + p.score, 0);
+            const avgScore = Math.round(totalScore / totalPlayers);
+            
+            // Mock statistics for demo
+            const thiefEscapes = Math.floor(Math.random() * totalPlayers);
+            const spySuccess = Math.floor(Math.random() * 100);
+            
+            document.getElementById('totalPlayers').textContent = totalPlayers;
+            document.getElementById('thiefEscapes').textContent = thiefEscapes;
+            document.getElementById('spySuccess').textContent = `${spySuccess}%`;
+            document.getElementById('avgScore').textContent = avgScore;
+            
+            // Update cycle count
+            document.getElementById('finalCycle').textContent = 
+                localStorage.getItem('game_cycles') || 3;
+            
+            // Render role performance
+            renderRolePerformance(players);
+        }
+
+        // Render role performance
+        function renderRolePerformance(players) {
+            const rolePerformanceEl = document.getElementById('rolePerformance');
+            rolePerformanceEl.innerHTML = '';
+            
+            const roleIcons = {
+                'Police': '👮',
+                'Thief': '🦹',
+                'Spy': '🕵️',
+                'Minister': '👨‍⚖️',
+                'Jester': '🤡',
+                'Knight': '⚔️',
+                'King': '👑',
+                'Queen': '👸',
+                'Prince': '🤴',
+                'Treasurer': '💰'
+            };
+            
+            players.forEach(player => {
+                const roleItem = document.createElement('div');
+                roleItem.className = 'role-item';
+                roleItem.innerHTML = `
+                    <div class="role-icon">${roleIcons[player.role] || '👤'}</div>
+                    <div class="role-name">${player.role || 'Citizen'}</div>
+                    <div class="role-score">${player.player}: ${player.score}</div>
+                `;
+                rolePerformanceEl.appendChild(roleItem);
+            });
+        }
+
+        // Action button functions
+        function playAgain() {
+            showNotification('Starting new game with same players...', 'success');
+            setTimeout(() => {
+                window.location.href = 'lobby.html';
+            }, 1500);
+        }
+
+        function returnToLobby() {
+            window.location.href = 'lobby.html';
+        }
+
+        function newGame() {
+            // Clear game-specific local storage
+            localStorage.removeItem('game_cycles');
+            showNotification('Creating new game...', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                background: ${type === 'success' ? 'rgba(46, 213, 115, 0.9)' : 'rgba(255, 255, 255, 0.1)'};
+                backdrop-filter: blur(15px);
+                padding: 20px 30px;
+                border-radius: 16px;
+                border-left: 5px solid ${type === 'success' ? '#2ED573' : '#00BFFF'};
+                transform: translateX(400px);
+                transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+                z-index: 1000;
+                max-width: 400px;
+                color: white;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Remove after delay
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 4000);
+        }
+
+        // Initialize
+        loadResults();
+    </script>
+</body>
+  </html>
