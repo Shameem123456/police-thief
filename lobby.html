@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police & Thief | Lobby</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0f2e 0%, #1a1f4b 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .room-info {
+            text-align: center;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .room-title {
+            font-size: 1.2rem;
+            color: #A9B7D6;
+            margin-bottom: 5px;
+        }
+
+        .room-code {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .player-count {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            color: #A9B7D6;
+        }
+
+        .count-badge {
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 30px;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .player-card.ready {
+            background: rgba(0, 191, 255, 0.1);
+            border-color: rgba(0, 191, 255, 0.3);
+        }
+
+        .player-card.ready::before {
+            opacity: 1;
+        }
+
+        .player-card.host {
+            background: rgba(138, 43, 226, 0.1);
+            border-color: rgba(138, 43, 226, 0.3);
+        }
+
+        .player-card.host::before {
+            opacity: 1;
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FF4757;
+        }
+
+        .player-status.ready {
+            background: #2ED573;
+            box-shadow: 0 0 15px rgba(46, 213, 115, 0.5);
+        }
+
+        .player-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .host-crown {
+            color: #FFD700;
+            font-size: 1.2rem;
+        }
+
+        .player-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #A9B7D6;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .controls-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .settings-toggle {
+            background: rgba(138, 43, 226, 0.2);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-toggle:hover {
+            background: rgba(138, 43, 226, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .ready-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .ready-btn {
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            border: none;
+            color: white;
+            padding: 25px 60px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .ready-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s;
+        }
+
+        .ready-btn:hover::before {
+            left: 100%;
+        }
+
+        .ready-btn:hover:not(:disabled) {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(138, 43, 226, 0.4);
+        }
+
+        .ready-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .ready-btn.ready {
+            background: linear-gradient(135deg, #2ED573, #00D166);
+        }
+
+        .all-ready-message {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(46, 213, 115, 0.1), rgba(0, 209, 102, 0.1));
+            border-radius: 16px;
+            border: 2px solid rgba(46, 213, 115, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(46, 213, 115, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+        }
+
+        .settings-panel {
+            display: none;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .setting-item {
+            margin-bottom: 25px;
+        }
+
+        .setting-label {
+            display: block;
+            color: #A9B7D6;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .range-container {
+            position: relative;
+        }
+
+        .range-input {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .range-value {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .save-settings-btn {
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .save-settings-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3);
+        }
+
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(12, 15, 46, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .countdown-content {
+            text-align: center;
+        }
+
+        .countdown-number {
+            font-size: 12rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: countdownPulse 1s infinite;
+        }
+
+        @keyframes countdownPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .countdown-text {
+            font-size: 2rem;
+            color: #A9B7D6;
+            margin-top: 20px;
+            letter-spacing: 3px;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #00BFFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 20px 30px;
+            border-radius: 16px;
+            border-left: 5px solid #00BFFF;
+            transform: translateX(400px);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .room-info {
+                min-width: 100%;
+            }
+            
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .countdown-number {
+                font-size: 8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="room-info">
+                <div class="room-title">ROOM CODE</div>
+                <div class="room-code" id="roomCode">--------</div>
+            </div>
+            <div class="player-count">
+                <div class="count-badge" id="playerCount">0</div>
+                <span>Players Connected</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="players-grid" id="playersGrid">
+            <!-- Players will be inserted here -->
+        </div>
+
+        <div class="controls-section">
+            <div class="controls-header">
+                <h2 class="section-title">Game Controls</h2>
+                <button class="settings-toggle" id="settingsToggle" onclick="toggleSettings()">
+                    ⚙️ Game Settings
+                </button>
+            </div>
+
+            <div class="ready-control">
+                <button class="ready-btn" id="readyBtn" onclick="toggleReady()">
+                    <span id="readyText">READY UP</span>
+                </button>
+                <div class="loader" id="loader" style="display: none;"></div>
+                <div class="all-ready-message" id="allReadyMessage" style="display: none;">
+                    🎉 All players ready! Starting game in <span id="countdownTimer">3</span>...
+                </div>
+            </div>
+
+            <div class="settings-panel" id="settingsPanel">
+                <div class="setting-item">
+                    <label class="setting-label">Number of Cycles</label>
+                    <div class="range-container">
+                        <input type="range" min="1" max="10" value="3" class="range-input" id="cyclesRange">
+                        <div class="range-value" id="cyclesValue">3</div>
+                    </div>
+                </div>
+                <button class="save-settings-btn" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="countdown-overlay" id="countdownOverlay">
+        <div class="countdown-content">
+            <div class="countdown-number" id="countdownNumber">3</div>
+            <div class="countdown-text">Game Starting...</div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyX5MHF0d9-2wxkfUPpXXHbepJJ-PBULAXxz2u25LVp6kj8mpCOktRltWx4w_RYneJH-Q/exec";
+        const POLL_INTERVAL = 2000;
+
+        // Get session data
+        const hostId = localStorage.getItem('host_id');
+        const myName = localStorage.getItem('player_name');
+        const roomId = localStorage.getItem('room_id');
+
+        // Redirect if no session
+        if (!hostId || !myName) {
+            window.location.href = 'index.html';
+        }
+
+        let poller = null;
+        let isHost = false;
+        let isReady = false;
+        let countdownActive = false;
+
+        // Initialize
+        document.getElementById('roomCode').textContent = roomId;
+
+        // Update range value display
+        const cyclesRange = document.getElementById('cyclesRange');
+        const cyclesValue = document.getElementById('cyclesValue');
+        
+        cyclesRange.addEventListener('input', () => {
+            cyclesValue.textContent = cyclesRange.value;
+        });
+
+        // Polling function
+        function pollLobby() {
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'GET_LOBBY',
+                    host_id: hostId
+                })
+            })
+            .then(response => response.json())
+            .then(updateLobby)
+            .catch(console.error);
+        }
+
+        // Update lobby display
+        function updateLobby(data) {
+            if (!data || data.error) {
+                showNotification('Error fetching lobby data');
+                return;
+            }
+
+            const playersGrid = document.getElementById('playersGrid');
+            playersGrid.innerHTML = '';
+
+            // Update player count
+            document.getElementById('playerCount').textContent = data.players.length;
+
+            // Render players
+            data.players.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                
+                if (player.name === data.host_name) {
+                    playerCard.classList.add('host');
+                    if (player.name === myName) {
+                        isHost = true;
+                        document.getElementById('settingsToggle').style.display = 'block';
+                    }
+                }
+                
+                if (player.ready) {
+                    playerCard.classList.add('ready');
+                    if (player.name === myName) {
+                        isReady = true;
+                        updateReadyButton();
+                    }
+                }
+
+                playerCard.innerHTML = `
+                    <div class="player-status ${player.ready ? 'ready' : ''}"></div>
+                    <div class="player-name">
+                        ${player.name === data.host_name ? '<span class="host-crown">👑</span>' : ''}
+                        ${player.name}
+                        ${player.name === myName ? '<span style="color: #00BFFF; margin-left: 5px;">(You)</span>' : ''}
+                    </div>
+                    <div class="player-meta">
+                        <span>Status: <strong>${player.ready ? 'Ready' : 'Waiting'}</strong></span>
+                        <span>${player.name === data.host_name ? 'Host' : 'Player'}</span>
+                    </div>
+                `;
+
+                playersGrid.appendChild(playerCard);
+            });
+
+            // Check if all ready
+            const allReady = data.players.every(p => p.ready);
+            const allReadyMessage = document.getElementById('allReadyMessage');
+            
+            if (allReady && data.players.length > 1) {
+                allReadyMessage.style.display = 'block';
+                if (!countdownActive) {
+                    countdownActive = true;
+                    startGameCountdown();
+                }
+            } else {
+                allReadyMessage.style.display = 'none';
+                countdownActive = false;
+            }
+        }
+
+        // Ready button functionality
+        function toggleReady() {
+            const loader = document.getElementById('loader');
+            const readyBtn = document.getElementById('readyBtn');
+            
+            readyBtn.disabled = true;
+            loader.style.display = 'block';
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'SET_READY',
+                    host_id: hostId,
+                    player_name: myName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    isReady = !isReady;
+                    updateReadyButton();
+                    showNotification(isReady ? 'You are ready!' : 'Ready status cleared', 'success');
+                }
+            })
+            .catch(() => {
+                showNotification('Network error');
+            })
+            .finally(() => {
+                readyBtn.disabled = false;
+                loader.style.display = 'none';
+            });
+        }
+
+        function updateReadyButton() {
+            const readyBtn = document.getElementById('readyBtn');
+            const readyText = document.getElementById('readyText');
+            
+            if (isReady) {
+                readyBtn.classList.add('ready');
+                readyText.innerHTML = 'READY ✓';
+                readyBtn.disabled = true;
+            } else {
+                readyBtn.classList.remove('ready');
+                readyText.textContent = 'READY UP';
+                readyBtn.disabled = false;
+            }
+        }
+
+        // Settings functionality
+        function toggleSettings() {
+            if (!isHost) return;
+            
+            const settingsPanel = document.getElementById('settingsPanel');
+            settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function saveSettings() {
+            if (!isHost) return;
+            
+            const cycles = cyclesRange.value;
+            
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'SAVE_SETTINGS',
+                    host_id: hostId,
+                    cycles: cycles
+                })
+            })
+            .then(() => {
+                showNotification('Settings saved successfully!', 'success');
+            });
+        }
+
+        // Countdown to game start
+        function startGameCountdown() {
+            let seconds = 3;
+            const countdownOverlay = document.getElementById('countdownOverlay');
+            const countdownNumber = document.getElementById('countdownNumber');
+            const countdownTimer = document.getElementById('countdownTimer');
+            
+            countdownOverlay.style.display = 'flex';
+            
+            const countdown = setInterval(() => {
+                countdownNumber.textContent = seconds;
+                countdownTimer.textContent = seconds;
+                seconds--;
+                
+                if (seconds < 0) {
+                    clearInterval(countdown);
+                    clearInterval(poller);
+                    
+                    // Initialize game
+                    fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'INIT_GAME',
+                            host_id: hostId
+                        })
+                    })
+                    .then(() => {
+                        window.location.href = 'game.html';
+                    });
+                }
+            }, 1000);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.borderLeftColor = type === 'success' ? '#2ED573' : '#00BFFF';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Start polling
+        poller = setInterval(pollLobby, POLL_INTERVAL);
+        pollLobby();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (poller) clearInterval(poller);
+        });
+    </script>
+</body>
+  </html>
