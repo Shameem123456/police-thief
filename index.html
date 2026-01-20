@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police & Thief Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c2461, #1e3799);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel h2 {
+            color: #4a69bd;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            border-bottom: 2px solid #4a69bd;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1rem;
+        }
+
+        input, select {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        button {
+            background: linear-gradient(to right, #4a69bd, #6a89cc);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #e55039, #eb2f06);
+        }
+
+        .btn-success {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+        }
+
+        .btn-warning {
+            background: linear-gradient(to right, #f39c12, #e67e22);
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+            font-size: 0.9rem;
+        }
+
+        .role-king { background: #f1c40f; color: #000; }
+        .role-queen { background: #9b59b6; color: #fff; }
+        .role-prince { background: #3498db; color: #fff; }
+        .role-knight { background: #2ecc71; color: #fff; }
+        .role-jester { background: #e74c3c; color: #fff; }
+        .role-minister { background: #1abc9c; color: #fff; }
+        .role-spy { background: #34495e; color: #fff; }
+        .role-treasurer { background: #d35400; color: #fff; }
+        .role-police { background: #2980b9; color: #fff; }
+        .role-thief { background: #2c3e50; color: #fff; }
+        .role-citizen { background: #7f8c8d; color: #fff; }
+
+        .player-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 5px solid #4a69bd;
+        }
+
+        .player-item.host {
+            border-left-color: #e55039;
+        }
+
+        .player-name {
+            font-weight: bold;
+        }
+
+        .player-role {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .player-ready {
+            color: #2ecc71;
+            font-size: 1.2rem;
+        }
+
+        .box-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .box {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .box:hover {
+            transform: scale(1.05);
+            border-color: #f1c40f;
+        }
+
+        .box.selected {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            border-color: #2ecc71;
+        }
+
+        .box.taken {
+            background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+            cursor: not-allowed;
+        }
+
+        .message-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #4a69bd;
+        }
+
+        .message.system {
+            border-left-color: #f39c12;
+            font-style: italic;
+        }
+
+        .message.error {
+            border-left-color: #e74c3c;
+        }
+
+        .message.success {
+            border-left-color: #2ecc71;
+        }
+
+        .game-phase {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .phase-lobby { background: #3498db; }
+        .phase-game { background: #2ecc71; }
+        .phase-completed { background: #9b59b6; }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .results-table th, .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-table th {
+            background: rgba(255, 255, 255, 0.1);
+            color: #4a69bd;
+        }
+
+        .results-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading-spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #4a69bd;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom-color: #4a69bd;
+            background: rgba(74, 105, 189, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 5px solid #f39c12;
+        }
+
+        .instructions h3 {
+            color: #f39c12;
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-user-secret"></i> Police & Thief</h1>
+            <p class="subtitle">A social deduction game of mystery and strategy</p>
+        </header>
+
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('room-tab')">Room</div>
+            <div class="tab" onclick="switchTab('game-tab')">Game</div>
+            <div class="tab" onclick="switchTab('results-tab')">Results</div>
+            <div class="tab" onclick="switchTab('leaderboard-tab')">Leaderboard</div>
+        </div>
+
+        <!-- Room Management Tab -->
+        <div id="room-tab" class="tab-content active">
+            <div class="game-container">
+                <div class="panel">
+                    <h2><i class="fas fa-plus-circle"></i> Create Room</h2>
+                    <div class="form-group">
+                        <label for="hostName">Your Name</label>
+                        <input type="text" id="hostName" placeholder="Enter your name" value="Player1">
+                    </div>
+                    <div class="form-group">
+                        <label for="roomId">Room ID</label>
+                        <input type="text" id="roomId" placeholder="Enter room ID" value="ROOM123">
+                    </div>
+                    <div class="form-group">
+                        <label for="roomPass">Password</label>
+                        <input type="password" id="roomPass" placeholder="Enter password" value="pass123">
+                    </div>
+                    <button class="btn-primary" onclick="createRoom()">
+                        <i class="fas fa-door-open"></i> Create Room
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <h2><i class="fas fa-sign-in-alt"></i> Join Room</h2>
+                    <div class="form-group">
+                        <label for="playerName">Your Name</label>
+                        <input type="text" id="playerName" placeholder="Enter your name" value="Player2">
+                    </div>
+                    <div class="form-group">
+                        <label for="joinRoomId">Room ID</label>
+                        <input type="text" id="joinRoomId" placeholder="Enter room ID" value="ROOM123">
+                    </div>
+                    <div class="form-group">
+                        <label for="joinPass">Password</label>
+                        <input type="password" id="joinPass" placeholder="Enter password" value="pass123">
+                    </div>
+                    <button class="btn-success" onclick="joinRoom()">
+                        <i class="fas fa-users"></i> Join Room
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2><i class="fas fa-home"></i> Room Status</h2>
+                <div id="roomStatus">
+                    <p>Not connected to a room. Create or join a room to start playing.</p>
+                </div>
+                
+                <div id="roomInfo" class="hidden">
+                    <div class="game-phase" id="phaseIndicator">LOBBY</div>
+                    <p><strong>Room ID:</strong> <span id="displayRoomId"></span></p>
+                    <p><strong>Players:</strong> <span id="playerCount">0</span>/<span id="maxPlayers">7</span></p>
+                    <p><strong>Cycles:</strong> <span id="currentCycle">1</span>/<span id="totalCycles">5</span></p>
+                    
+                    <h3>Players in Room</h3>
+                    <ul class="player-list" id="playersList">
+                        <!-- Players will be dynamically added here -->
+                    </ul>
+                    
+                    <div id="hostControls" class="hidden">
+                        <div class="form-group">
+                            <label for="maxPlayersInput">Max Players</label>
+                            <select id="maxPlayersInput">
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cyclesInput">Number of Cycles</label>
+                            <select id="cyclesInput">
+                                <option value="3">3</option>
+                                <option value="5">5</option>
+                                <option value="7">7</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                        <button class="btn-warning" onclick="updateSettings()">
+                            <i class="fas fa-cog"></i> Update Settings
+                        </button>
+                        <button class="btn-success" onclick="startGame()">
+                            <i class="fas fa-play"></i> Start Game
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Tab -->
+        <div id="game-tab" class="tab-content">
+            <div class="panel">
+                <h2><i class="fas fa-gamepad"></i> Game Actions</h2>
+                <div id="gameStatus">
+                    <p>Game has not started yet. Wait for the host to start the game.</p>
+                </div>
+                
+                <!-- Box Selection Section -->
+                <div id="boxSelection" class="hidden">
+                    <h3>Select Your Box</h3>
+                    <p>Choose a box to reveal your role for this cycle:</p>
+                    <div class="box-container" id="boxesContainer">
+                        <!-- Boxes will be dynamically added here -->
+                    </div>
+                    <div id="selectedRoleInfo" class="hidden">
+                        <h3>Your Role: <span id="playerRole" class="role-badge">Unknown</span></h3>
+                        <p id="roleDescription"></p>
+                    </div>
+                </div>
+                
+                <!-- Role-Specific Actions -->
+                <div id="roleActions" class="hidden">
+                    <!-- Minister & Jester Investigation -->
+                    <div id="investigationSection" class="hidden">
+                        <h3>Investigate a Player</h3>
+                        <p>Select a player to investigate and learn their true role:</p>
+                        <div class="form-group">
+                            <label for="investigatePlayer">Choose Player</label>
+                            <select id="investigatePlayer">
+                                <!-- Players will be dynamically added -->
+                            </select>
+                        </div>
+                        <button onclick="submitInvestigation()">
+                            <i class="fas fa-search"></i> Investigate
+                        </button>
+                        <div id="investigationResult" class="hidden message-container">
+                            <!-- Investigation result will appear here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Police & Knight Messages -->
+                    <div id="messagesSection" class="hidden">
+                        <h3>Your Messages</h3>
+                        <p>You have received these messages (one is true, one is false):</p>
+                        <div class="message-container" id="messagesContainer">
+                            <!-- Messages will appear here -->
+                        </div>
+                        <div class="form-group">
+                            <label for="targetPlayer">Select Your Target</label>
+                            <select id="targetPlayer">
+                                <!-- Players will be dynamically added -->
+                            </select>
+                        </div>
+                        <button onclick="submitPoliceKnight()">
+                            <i class="fas fa-crosshairs"></i> Submit Selection
+                        </button>
+                    </div>
+                    
+                    <!-- Spy Selection -->
+                    <div id="spySection" class="hidden">
+                        <h3>Spy Predictions</h3>
+                        <p>Predict who is the Minister and who is the Jester:</p>
+                        <div class="form-group">
+                            <label for="spyMinister">Minister (True Info)</label>
+                            <select id="spyMinister">
+                                <!-- Players will be dynamically added -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="spyJester">Jester (False Info)</label>
+                            <select id="spyJester">
+                                <!-- Players will be dynamically added -->
+                            </select>
+                        </div>
+                        <button onclick="submitSpy()">
+                            <i class="fas fa-user-secret"></i> Submit Predictions
+                        </button>
+                    </div>
+                    
+                    <!-- Wait for Others -->
+                    <div id="waitingSection" class="hidden">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Waiting for other players to complete their actions...</p>
+                            <button onclick="checkGameStatus()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Tab -->
+        <div id="results-tab" class="tab-content">
+            <div class="panel">
+                <h2><i class="fas fa-chart-line"></i> Cycle Results</h2>
+                <div id="resultsStatus">
+                    <p>No results available yet. Complete a game cycle to see results.</p>
+                </div>
+                <div id="resultsContent" class="hidden">
+                    <h3>Cycle <span id="resultsCycle">1</span> Results</h3>
+                    <table class="results-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Role</th>
+                                <th>Score</th>
+                                <th>Bonuses</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Results will be dynamically added -->
+                        </tbody>
+                    </table>
+                    
+                    <div id="thiefResult" class="hidden message-container">
+                        <!-- Thief-specific result -->
+                    </div>
+                    
+                    <div id="nextCycleSection" class="hidden">
+                        <button class="btn-success" onclick="nextCycle()">
+                            <i class="fas fa-forward"></i> Start Next Cycle
+                        </button>
+                        <button class="btn-primary" onclick="getResults()">
+                            <i class="fas fa-redo"></i> Refresh Results
+                        </button>
+                    </div>
+                    
+                    <div id="gameCompleteSection" class="hidden">
+                        <div class="message success">
+                            <h3><i class="fas fa-trophy"></i> Game Complete!</h3>
+                            <p>All cycles have been completed. Check the leaderboard for final scores.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Tab -->
+        <div id="leaderboard-tab" class="tab-content">
+            <div class="panel">
+                <h2><i class="fas fa-crown"></i> Leaderboard</h2>
+                <div id="leaderboardStatus">
+                    <p>No leaderboard data available yet.</p>
+                </div>
+                <div id="leaderboardContent" class="hidden">
+                    <table class="results-table" id="leaderboardTable">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Total Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Leaderboard entries will be dynamically added -->
+                        </tbody>
+                    </table>
+                    <button onclick="getLeaderboard()">
+                        <i class="fas fa-sync-alt"></i> Refresh Leaderboard
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Messages -->
+        <div class="panel">
+            <h2><i class="fas fa-comments"></i> Game Messages</h2>
+            <div class="message-container" id="gameMessages">
+                <div class="message system">
+                    Welcome to Police & Thief! Create or join a room to begin.
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3><i class="fas fa-info-circle"></i> How to Play</h3>
+            <ul>
+                <li><strong>Objective:</strong> Thief tries to escape, Police tries to catch Thief</li>
+                <li><strong>Minister:</strong> Investigates players, gives true info to Police</li>
+                <li><strong>Jester:</strong> Investigates players, gives false info to Police</li>
+                <li><strong>Spy:</strong> Tries to identify Minister and Jester</li>
+                <li><strong>Knight:</strong> Protects players from Police</li>
+                <li>Each cycle lasts until all special roles submit their actions</li>
+                <li>Game continues for multiple cycles (configurable)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            roomId: null,
+            playerId: null,
+            playerName: null,
+            isHost: false,
+            currentRole: null,
+            gamePhase: 'LOBBY',
+            currentCycle: 1,
+            players: [],
+            selections: [],
+            boxes: []
+        };
+
+        // API endpoint (replace with your Google Apps Script URL)
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzSUg2IFMrO-SVyrb1Uu5Cj1xhuUpGZPeemUkQ_91HZVvsS2Ko7fdLBfp1m_EpaWmehmA/exec';
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        function addMessage(text, type = 'system') {
+            const messagesContainer = document.getElementById('gameMessages');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${text}`;
+            messagesContainer.appendChild(message);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Loading...</p></div>';
+            }
+        }
+
+        function switchTab(tabId) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Activate selected tab
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // ============================================
+        // API CALL FUNCTIONS
+        // ============================================
+
+        async function callAPI(action, data) {
+            const payload = {
+                action: action,
+                ...data
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (!result.success) {
+                    addMessage(`Error: ${result.message}`, 'error');
+                    return null;
+                }
+                
+                return result;
+            } catch (error) {
+                addMessage(`Network error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // ============================================
+        // ROOM MANAGEMENT
+        // ============================================
+
+        async function createRoom() {
+            const hostName = document.getElementById('hostName').value;
+            const roomId = document.getElementById('roomId').value;
+            const password = document.getElementById('roomPass').value;
+
+            if (!hostName || !roomId || !password) {
+                addMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            addMessage(`Creating room ${roomId}...`, 'system');
+
+            const result = await callAPI('CREATE_ROOM', {
+                name: hostName,
+                roomId: roomId,
+                pass: password
+            });
+
+            if (result) {
+                gameState.roomId = roomId;
+                gameState.playerId = result.playerId;
+                gameState.playerName = hostName;
+                gameState.isHost = true;
+                
+                addMessage(`Room created successfully! Your player ID: ${result.playerId}`, 'success');
+                updateRoomDisplay(result.room);
+                switchTab('room-tab');
+            }
+        }
+
+        async function joinRoom() {
+            const playerName = document.getElementById('playerName').value;
+            const roomId = document.getElementById('joinRoomId').value;
+            const password = document.getElementById('joinPass').value;
+
+            if (!playerName || !roomId || !password) {
+                addMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            addMessage(`Joining room ${roomId}...`, 'system');
+
+            const result = await callAPI('JOIN_ROOM', {
+                name: playerName,
+                roomId: roomId,
+                pass: password
+            });
+
+            if (result) {
+                gameState.roomId = roomId;
+                gameState.playerId = result.playerId;
+                gameState.playerName = playerName;
+                gameState.isHost = false;
+                
+                addMessage(`Joined room successfully! Your player ID: ${result.playerId}`, 'success');
+                updateRoomDisplay(result.room);
+                switchTab('room-tab');
+            }
+        }
+
+        async function getRoom() {
+            if (!gameState.roomId) return;
+
+            const result = await callAPI('GET_ROOM', {
+                roomId: gameState.roomId
+            });
+
+            if (result) {
+                updateRoomDisplay(result.room);
+            }
+        }
+
+        function updateRoomDisplay(room) {
+            document.getElementById('roomInfo').classList.remove('hidden');
+            document.getElementById('roomStatus').classList.add('hidden');
+            
+            document.getElementById('displayRoomId').textContent = room.id;
+            document.getElementById('playerCount').textContent = room.playersCount;
+            document.getElementById('maxPlayers').textContent = room.maxPlayers;
+            document.getElementById('currentCycle').textContent = room.currentCycle;
+            document.getElementById('totalCycles').textContent = room.cycles;
+            
+            // Update phase indicator
+            const phaseIndicator = document.getElementById('phaseIndicator');
+            phaseIndicator.textContent = room.phase;
+            phaseIndicator.className = 'game-phase';
+            
+            if (room.phase === 'LOBBY') phaseIndicator.classList.add('phase-lobby');
+            else if (room.phase === 'GAME') phaseIndicator.classList.add('phase-game');
+            else if (room.phase === 'COMPLETED') phaseIndicator.classList.add('phase-completed');
+            
+            // Update players list
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            
+            room.players.forEach(player => {
+                const li = document.createElement('li');
+                li.className = `player-item ${player.isHost ? 'host' : ''}`;
+                li.innerHTML = `
+                    <div>
+                        <span class="player-name">${player.name} ${player.isHost ? '<i class="fas fa-crown"></i>' : ''}</span>
+                        <div class="player-role">${player.role ? `Role: ${player.role}` : 'No role yet'}</div>
+                    </div>
+                    <div>
+                        ${player.ready ? '<i class="fas fa-check player-ready"></i>' : ''}
+                        ${player.id === gameState.playerId ? '<span class="role-badge role-citizen">You</span>' : ''}
+                    </div>
+                `;
+                playersList.appendChild(li);
+            });
+            
+            // Show/hide host controls
+            const hostControls = document.getElementById('hostControls');
+            if (gameState.isHost && room.phase === 'LOBBY') {
+                hostControls.classList.remove('hidden');
+                document.getElementById('maxPlayersInput').value = room.maxPlayers;
+                document.getElementById('cyclesInput').value = room.cycles;
+            } else {
+                hostControls.classList.add('hidden');
+            }
+            
+            // Update game state
+            gameState.gamePhase = room.phase;
+            gameState.currentCycle = room.currentCycle;
+            gameState.players = room.players;
+            
+            // Update game tab based on phase
+            updateGameTab();
+            
+            // Auto-refresh room every 5 seconds if in lobby
+            if (room.phase === 'LOBBY') {
+                setTimeout(getRoom, 5000);
+            }
+        }
+
+        // ============================================
+        // GAME MANAGEMENT
+        // ============================================
+
+        async function startGame() {
+            if (!gameState.isHost) {
+                addMessage('Only the host can start the game', 'error');
+                return;
+            }
+
+            addMessage('Starting game...', 'system');
+
+            const result = await callAPI('START_GAME', {
+                roomId: gameState.roomId,
+                playerId: gameState.playerId
+            });
+
+            if (result) {
+                addMessage('Game started!', 'success');
+                getRoom();
+                switchTab('game-tab');
+            }
+        }
+
+        async function updateSettings() {
+            if (!gameState.isHost) {
+                addMessage('Only the host can update settings', 'error');
+                return;
+            }
+
+            const maxPlayers = document.getElementById('maxPlayersInput').value;
+            const cycles = document.getElementById('cyclesInput').value;
+
+            addMessage('Updating game settings...', 'system');
+
+            const result = await callAPI('UPDATE_SETTINGS', {
+                roomId: gameState.roomId,
+                maxPlayers: parseInt(maxPlayers),
+                cycles: parseInt(cycles)
+            });
+
+            if (result) {
+                addMessage('Settings updated successfully', 'success');
+                getRoom();
+            }
+        }
+
+        function updateGameTab() {
+            const gameStatus = document.getElementById('gameStatus');
+            const boxSelection = document.getElementById('boxSelection');
+            const roleActions = document.getElementById('roleActions');
+            
+            if (gameState.gamePhase !== 'GAME') {
+                gameStatus.innerHTML = '<p>Game has not started yet. Wait for the host to start the game.</p>';
+                boxSelection.classList.add('hidden');
+                roleActions.classList.add('hidden');
+                return;
+            }
+            
+            // Check if player has selected a box
+            const player = gameState.players.find(p => p.id === gameState.playerId);
+            const hasRole = player && player.role;
+            
+            if (!hasRole) {
+                gameStatus.innerHTML = '<p>Select a box to get your role for this cycle!</p>';
+                boxSelection.classList.remove('hidden');
+                roleActions.classList.add('hidden');
+                loadBoxes();
+            } else {
+                gameState.currentRole = player.role;
+                gameStatus.innerHTML = `<p>Your role: <span class="role-badge role-${player.role.toLowerCase()}">${player.role}</span></p>`;
+                boxSelection.classList.add('hidden');
+                roleActions.classList.remove('hidden');
+                
+                // Show role-specific actions
+                showRoleActions(player.role);
+            }
+        }
+
+        async function loadBoxes() {
+            const boxesContainer = document.getElementById('boxesContainer');
+            boxesContainer.innerHTML = '';
+            
+            // For now, create placeholder boxes
+            // In a real implementation, you would fetch available boxes from the API
+            for (let i = 0; i < gameState.players.length; i++) {
+                const box = document.createElement('div');
+                box.className = 'box';
+                box.textContent = i + 1;
+                box.onclick = () => selectBox(i);
+                boxesContainer.appendChild(box);
+            }
+        }
+
+        async function selectBox(boxIndex) {
+            addMessage(`Selecting box ${boxIndex + 1}...`, 'system');
+
+            const result = await callAPI('SELECT_BOX', {
+                roomId: gameState.roomId,
+                playerId: gameState.playerId,
+                boxIndex: boxIndex
+            });
+
+            if (result) {
+                gameState.currentRole = result.role;
+                addMessage(`You are now: ${result.role}`, 'success');
+                
+                // Update UI
+                const selectedRoleInfo = document.getElementById('selectedRoleInfo');
+                const playerRole = document.getElementById('playerRole');
+                const roleDescription = document.getElementById('roleDescription');
+                
+                playerRole.textContent = result.role;
+                playerRole.className = `role-badge role-${result.role.toLowerCase()}`;
+                
+                // Set role description
+                const descriptions = {
+                    'King': 'The highest scoring role. No special actions.',
+                    'Queen': 'High scoring role. No special actions.',
+                    'Prince': 'High scoring role. No special actions.',
+                    'Knight': 'Protect players from Police. Select Thief to protect.',
+                    'Jester': 'Investigate players, but give false info to Police.',
+                    'Minister': 'Investigate players, give true info to Police.',
+                    'Spy': 'Identify the Minister and Jester for bonus points.',
+                    'Treasurer': 'Standard role with moderate points.',
+                    'Police': 'Catch the Thief based on Minister/Jester info.',
+                    'Thief': 'Try to escape Police detection.',
+                    'Citizen': 'Standard role with basic points.'
+                };
+                
+                roleDescription.textContent = descriptions[result.role] || 'Standard role.';
+                selectedRoleInfo.classList.remove('hidden');
+                
+                // Refresh game state
+                getRoom();
+            }
+        }
+
+        function showRoleActions(role) {
+            // Hide all sections first
+            document.getElementById('investigationSection').classList.add('hidden');
+            document.getElementById('messagesSection').classList.add('hidden');
+            document.getElementById('spySection').classList.add('hidden');
+            document.getElementById('waitingSection').classList.add('hidden');
+            
+            // Load player lists for dropdowns
+            loadPlayerDropdowns();
+            
+            // Show appropriate section based on role
+            if (role === 'Minister' || role === 'Jester') {
+                document.getElementById('investigationSection').classList.remove('hidden');
+                document.getElementById('investigationResult').classList.add('hidden');
+            } else if (role === 'Police' || role === 'Knight') {
+                document.getElementById('messagesSection').classList.remove('hidden');
+                loadMessages();
+            } else if (role === 'Spy') {
+                document.getElementById('spySection').classList.remove('hidden');
+            } else {
+                document.getElementById('waitingSection').classList.remove('hidden');
+            }
+        }
+
+        function loadPlayerDropdowns() {
+            const investigatePlayer = document.getElementById('investigatePlayer');
+            const targetPlayer = document.getElementById('targetPlayer');
+            const spyMinister = document.getElementById('spyMinister');
+            const spyJester = document.getElementById('spyJester');
+            
+            // Clear existing options (keep first placeholder)
+            while (investigatePlayer.options.length > 1) investigatePlayer.remove(1);
+            while (targetPlayer.options.length > 1) targetPlayer.remove(1);
+            while (spyMinister.options.length > 1) spyMinister.remove(1);
+            while (spyJester.options.length > 1) spyJester.remove(1);
+            
+            // Add current players (excluding self)
+            gameState.players.forEach(player => {
+                if (player.id !== gameState.playerId) {
+                    const option = document.createElement('option');
+                    option.value = player.id;
+                    option.textContent = player.name;
+                    
+                    investigatePlayer.appendChild(option.cloneNode(true));
+                    targetPlayer.appendChild(option.cloneNode(true));
+                    spyMinister.appendChild(option.cloneNode(true));
+                    spyJester.appendChild(option.cloneNode(true));
+                }
+            });
+        }
+
+        async function loadMessages() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '';
+            
+            const result = await callAPI('GET_MESSAGES', {
+                roomId: gameState.roomId,
+                playerId: gameState.playerId
+            });
+            
+            if (result && result.messages) {
+                result.messages.forEach((msg, index) => {
+                    const message = document.createElement('div');
+                    message.className = 'message';
+                    message.textContent = `${index + 1}. ${msg}`;
+                    messagesContainer.appendChild(message);
+                });
+            } else {
+                messagesContainer.innerHTML = '<div class="message">No messages yet.</div>';
+            }
+        }
+
+        async function submitInvestigation() {
+            const targetPlayerId = document.getElementById('investigatePlayer').value;
+            
+            if (!targetPlayerId) {
+                addMessage('Please select a player to investigate', 'error');
+                return;
+            }
+            
+            addMessage('Investigating player...', 'system');
+            
+            const result = await callAPI('SUBMIT_INVESTIGATION', {
+                roomId: gameState.roomId,
+                role: gameState.currentRole,
+                targetPlayerId: targetPlayerId,
+                playerId: gameState.playerId
+            });
+            
+            if (result) {
+                const investigationResult = document.getElementById('investigationResult');
+                investigationResult.innerHTML = `
+                    <div class="message success">
+                        <strong>Investigation Complete!</strong><br>
+                        Player is: ${result.learnedRole}
+                    </div>
+                `;
+                investigationResult.classList.remove('hidden');
+                addMessage('Investigation submitted successfully', 'success');
+                
+                // Show waiting section
+                document.getElementById('investigationSection').classList.add('hidden');
+                document.getElementById('waitingSection').classList.remove('hidden');
+            }
+        }
+
+        async function submitPoliceKnight() {
+            const targetPlayerId = document.getElementById('targetPlayer').value;
+            
+            if (!targetPlayerId) {
+                addMessage('Please select a target player', 'error');
+                return;
+            }
+            
+            addMessage('Submitting selection...', 'system');
+            
+            const action = gameState.currentRole === 'Police' ? 'SUBMIT_POLICE' : 'SUBMIT_KNIGHT';
+            
+            const result = await callAPI(action, {
+                roomId: gameState.roomId,
+                targetPlayerId: targetPlayerId,
+                playerId: gameState.playerId
+            });
+            
+            if (result) {
+                addMessage('Selection submitted successfully', 'success');
+                document.getElementById('messagesSection').classList.add('hidden');
+                document.getElementById('waitingSection').classList.remove('hidden');
+            }
+        }
+
+        async function submitSpy() {
+            const ministerId = document.getElementById('spyMinister').value;
+            const jesterId = document.getElementById('spyJester').value;
+            
+            if (!ministerId || !jesterId) {
+                addMessage('Please select both Minister and Jester', 'error');
+                return;
+            }
+            
+            if (ministerId === jesterId) {
+                addMessage('Minister and Jester must be different players', 'error');
+                return;
+            }
+            
+            addMessage('Submitting spy predictions...', 'system');
+            
+            const result = await callAPI('SUBMIT_SPY', {
+                roomId: gameState.roomId,
+                minister: ministerId,
+                jester: jesterId,
+                playerId: gameState.playerId
+            });
+            
+            if (result) {
+                addMessage('Predictions submitted successfully', 'success');
+                document.getElementById('spySection').classList.add('hidden');
+                document.getElementById('waitingSection').classList.remove('hidden');
+            }
+        }
+
+        async function checkGameStatus() {
+            addMessage('Checking game status...', 'system');
+            getRoom();
+        }
+
+        // ============================================
+        // RESULTS MANAGEMENT
+        // ============================================
+
+        async function getResults() {
+            if (!gameState.roomId) {
+                addMessage('Not in a room', 'error');
+                return;
+            }
+            
+            showLoading('resultsContent');
+            
+            const result = await callAPI('GET_RESULTS', {
+                roomId: gameState.roomId
+            });
+            
+            if (result) {
+                displayResults(result);
+                switchTab('results-tab');
+            }
+        }
+
+        function displayResults(result) {
+            const resultsContent = document.getElementById('resultsContent');
+            const resultsCycle = document.getElementById('resultsCycle');
+            const resultsTable = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
+            const thiefResult = document.getElementById('thiefResult');
+            const nextCycleSection = document.getElementById('nextCycleSection');
+            const gameCompleteSection = document.getElementById('gameCompleteSection');
+            
+            resultsContent.classList.remove('hidden');
+            resultsCycle.textContent = result.cycle;
+            
+            // Clear table
+            resultsTable.innerHTML = '';
+            
+            // Populate results
+            result.results.forEach((playerResult, index) => {
+                const row = resultsTable.insertRow();
+                
+                // Rank cell
+                const rankCell = row.insertCell(0);
+                rankCell.textContent = index + 1;
+                
+                // Player name cell
+                const nameCell = row.insertCell(1);
+                nameCell.innerHTML = `
+                    ${playerResult.name} 
+                    <span class="role-badge role-${playerResult.role.toLowerCase()}">${playerResult.role}</span>
+                `;
+                
+                // Score cell
+                const scoreCell = row.insertCell(2);
+                scoreCell.textContent = playerResult.score;
+                scoreCell.style.fontWeight = 'bold';
+                scoreCell.style.color = playerResult.score > 0 ? '#2ecc71' : '#e74c3c';
+                
+                // Bonuses cell
+                const bonusCell = row.insertCell(3);
+                if (playerResult.bonuses && playerResult.bonuses.length > 0) {
+                    bonusCell.innerHTML = playerResult.bonuses.join('<br>');
+                } else {
+                    bonusCell.textContent = 'None';
+                }
+                
+                // Highlight current player
+                if (playerResult.id === gameState.playerId) {
+                    row.style.backgroundColor = 'rgba(52, 152, 219, 0.2)';
+                }
+            });
+            
+            // Show thief-specific result
+            const thief = result.results.find(r => r.role === 'Thief');
+            if (thief) {
+                thiefResult.innerHTML = `
+                    <div class="message ${thief.score > 0 ? 'success' : 'error'}">
+                        <strong>Thief Result:</strong> ${thief.score > 0 ? 'ESCAPED with 900 points!' : 'CAUGHT with 0 points!'}<br>
+                        ${thief.bonuses ? thief.bonuses.join(' • ') : ''}
+                    </div>
+                `;
+                thiefResult.classList.remove('hidden');
+            } else {
+                thiefResult.classList.add('hidden');
+            }
+            
+            // Show next cycle button if host and game not completed
+            if (gameState.isHost && gameState.gamePhase === 'GAME') {
+                nextCycleSection.classList.remove('hidden');
+            } else {
+                nextCycleSection.classList.add('hidden');
+            }
+            
+            // Show game complete message if applicable
+            if (gameState.gamePhase === 'COMPLETED') {
+                gameCompleteSection.classList.remove('hidden');
+                nextCycleSection.classList.add('hidden');
+            } else {
+                gameCompleteSection.classList.add('hidden');
+            }
+            
+            addMessage(`Results for cycle ${result.cycle} loaded`, 'success');
+        }
+
+        async function nextCycle() {
+            if (!gameState.isHost) {
+                addMessage('Only the host can start the next cycle', 'error');
+                return;
+            }
+            
+            addMessage('Starting next cycle...', 'system');
+            
+            const result = await callAPI('NEXT_CYCLE', {
+                roomId: gameState.roomId
+            });
+            
+            if (result) {
+                if (result.gameOver) {
+                    addMessage('Game completed! All cycles finished.', 'success');
+                } else {
+                    addMessage(`Cycle ${result.nextCycle} started!`, 'success');
+                }
+                
+                // Refresh room state
+                getRoom();
+                getResults();
+            }
+        }
+
+        // ============================================
+        // LEADERBOARD
+        // ============================================
+
+        async function getLeaderboard() {
+            if (!gameState.roomId) {
+                addMessage('Not in a room', 'error');
+                return;
+            }
+            
+            showLoading('leaderboardContent');
+            
+            const result = await callAPI('GET_LEADERBOARD', {
+                roomId: gameState.roomId
+            });
+            
+            if (result) {
+                displayLeaderboard(result);
+                switchTab('leaderboard-tab');
+            }
+        }
+
+        function displayLeaderboard(result) {
+            const leaderboardContent = document.getElementById('leaderboardContent');
+            const leaderboardTable = document.getElementById('leaderboardTable').getElementsByTagName('tbody')[0];
+            
+            leaderboardContent.classList.remove('hidden');
+            
+            // Clear table
+            leaderboardTable.innerHTML = '';
+            
+            // Populate leaderboard
+            result.leaderboard.forEach((player, index) => {
+                const row = leaderboardTable.insertRow();
+                
+                // Rank cell with medal emojis
+                const rankCell = row.insertCell(0);
+                if (index === 0) {
+                    rankCell.innerHTML = '<i class="fas fa-trophy" style="color: #f1c40f;"></i> 1st';
+                } else if (index === 1) {
+                    rankCell.innerHTML = '<i class="fas fa-medal" style="color: #95a5a6;"></i> 2nd';
+                } else if (index === 2) {
+                    rankCell.innerHTML = '<i class="fas fa-medal" style="color: #d35400;"></i> 3rd';
+                } else {
+                    rankCell.textContent = `${index + 1}th`;
+                }
+                
+                // Player name cell
+                const nameCell = row.insertCell(1);
+                nameCell.textContent = player.name;
+                if (player.name === gameState.playerName) {
+                    nameCell.innerHTML += ' <span class="role-badge role-citizen">You</span>';
+                }
+                
+                // Score cell
+                const scoreCell = row.insertCell(2);
+                scoreCell.textContent = player.totalScore;
+                scoreCell.style.fontWeight = 'bold';
+                scoreCell.style.fontSize = '1.1rem';
+                
+                // Highlight current player
+                if (player.name === gameState.playerName) {
+                    row.style.backgroundColor = 'rgba(52, 152, 219, 0.2)';
+                }
+            });
+            
+            addMessage('Leaderboard updated', 'success');
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        // Initialize the UI
+        document.addEventListener('DOMContentLoaded', function() {
+            addMessage('Game interface loaded. Create or join a room to begin!', 'system');
+            
+            // Auto-refresh room if we're in one
+            setInterval(() => {
+                if (gameState.roomId && gameState.gamePhase === 'LOBBY') {
+                    getRoom();
+                }
+            }, 10000);
+        });
+    </script>
+</body>
+  </html>
