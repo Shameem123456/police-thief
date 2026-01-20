@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Police & Thief Multiplayer Game</title>
+<style>
+  :root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --light-bg: #ecf0f1;
+    --dark-bg: #34495e;
+    --card-bg: #ffffff;
+    --text-color: #2c3e50;
+    --text-light: #7f8c8d;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--light-bg) 0%, #dfe6e9 100%);
+    color: var(--text-color);
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.6;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 30px;
+  }
+  
+  .hidden {
+    display: none !important;
+  }
+  
+  h2 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 30px;
+    font-size: 2.2rem;
+    position: relative;
+    padding-bottom: 15px;
+  }
+  
+  h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(to right, var(--secondary-color), var(--accent-color));
+    border-radius: 2px;
+  }
+  
+  h3 {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    border-left: 4px solid var(--secondary-color);
+    padding-left: 15px;
+  }
+  
+  .phase-container {
+    margin-bottom: 40px;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+  }
+  
+  .phase-container:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Form Elements */
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  
+  input, select {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border 0.3s;
+  }
+  
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  }
+  
+  /* Buttons */
+  button {
+    background: linear-gradient(to right, var(--secondary-color), var(--accent-color));
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 8px 5px;
+    min-width: 120px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  button:active {
+    transform: translateY(0);
+  }
+  
+  button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .btn-secondary {
+    background: var(--primary-color);
+  }
+  
+  .btn-success {
+    background: var(--success-color);
+  }
+  
+  .btn-warning {
+    background: var(--warning-color);
+  }
+  
+  /* Player List */
+  .player-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+  }
+  
+  .player-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--secondary-color);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s;
+  }
+  
+  .player-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .player-card.ready {
+    border-left-color: var(--success-color);
+  }
+  
+  .player-card.host {
+    border-left-color: var(--warning-color);
+    background: #fff9e6;
+  }
+  
+  .player-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+  }
+  
+  .player-role {
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+  
+  /* Box Grid */
+  .box-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+    margin: 30px 0;
+  }
+  
+  .box {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border: 3px solid var(--secondary-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .box:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #e3e8f0 0%, #a8b5d1 100%);
+  }
+  
+  .box.selected {
+    background: linear-gradient(135deg, var(--success-color), #2ecc71);
+    color: white;
+    cursor: default;
+    border-color: var(--success-color);
+  }
+  
+  /* Messages Container */
+  .messages-container {
+    display: grid;
+    gap: 15px;
+  }
+  
+  .message-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    position: relative;
+  }
+  
+  .message-card::before {
+    content: '"';
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    font-size: 4rem;
+    color: rgba(52, 152, 219, 0.1);
+  }
+  
+  /* Results & Leaderboard */
+  .results-grid, .leaderboard-grid {
+    display: grid;
+    gap: 15px;
+    margin: 20px 0;
+  }
+  
+  .result-card, .leaderboard-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  }
+  
+  .result-card.winner {
+    background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+    border: 2px solid var(--warning-color);
+  }
+  
+  .rank {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+    min-width: 50px;
+  }
+  
+  .player-info {
+    flex: 1;
+    padding: 0 20px;
+  }
+  
+  .score {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--success-color);
+  }
+  
+  /* Role Badges */
+  .role-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 10px;
+    text-transform: uppercase;
+  }
+  
+  .role-police { background: #3498db; color: white; }
+  .role-thief { background: #e74c3c; color: white; }
+  .role-knight { background: #9b59b6; color: white; }
+  .role-minister { background: #1abc9c; color: white; }
+  .role-spy { background: #34495e; color: white; }
+  .role-jester { background: #f39c12; color: white; }
+  .role-citizen { background: #95a5a6; color: white; }
+  .role-treasurer { background: #d35400; color: white; }
+  .role-king { background: #f1c40f; color: #2c3e50; }
+  .role-queen { background: #e84393; color: white; }
+  .role-prince { background: #00cec9; color: white; }
+  
+  /* Status Indicators */
+  .status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  
+  .status-ready { background: var(--success-color); }
+  .status-waiting { background: var(--warning-color); }
+  .status-inactive { background: var(--text-light); }
+  
+  /* Loading Spinner */
+  .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--secondary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .container {
+      padding: 15px;
+    }
+    
+    .player-list, .box-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    button {
+      width: 100%;
+      margin: 8px 0;
+    }
+  }
+  
+  /* Game Info Panel */
+  .game-info {
+    background: linear-gradient(135deg, var(--primary-color), #1a252f);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  
+  .info-label {
+    opacity: 0.8;
+  }
+  
+  .info-value {
+    font-weight: bold;
+  }
+  
+  /* Phase Progress */
+  .phase-progress {
+    display: flex;
+    justify-content: space-between;
+    margin: 30px 0;
+    position: relative;
+  }
+  
+  .phase-progress::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #ddd;
+    z-index: 1;
+  }
+  
+  .phase-step {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .phase-circle {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: 3px solid #ddd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-weight: bold;
+  }
+  
+  .phase-step.active .phase-circle {
+    background: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
+  }
+  
+  .phase-step.completed .phase-circle {
+    background: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🚨 Police & Thief Multiplayer Game</h2>
+  
+  <!-- Game Info Panel -->
+  <div class="game-info">
+    <div class="info-item">
+      <span class="info-label">Room ID:</span>
+      <span class="info-value" id="currentRoomId">-</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Current Cycle:</span>
+      <span class="info-value" id="currentCycle">1</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Your Role:</span>
+      <span class="info-value" id="currentRole">-</span>
+    </div>
+  </div>
+
+  <!-- Phase Progress -->
+  <div class="phase-progress">
+    <div class="phase-step active" id="phaseLobby">
+      <div class="phase-circle">1</div>
+      <div>Lobby</div>
+    </div>
+    <div class="phase-step" id="phaseBox">
+      <div class="phase-circle">2</div>
+      <div>Box</div>
+    </div>
+    <div class="phase-step" id="phaseInvestigation">
+      <div class="phase-circle">3</div>
+      <div>Investigation</div>
+    </div>
+    <div class="phase-step" id="phaseMessage">
+      <div class="phase-circle">4</div>
+      <div>Message</div>
+    </div>
+    <div class="phase-step" id="phaseAction">
+      <div class="phase-circle">5</div>
+      <div>Action</div>
+    </div>
+    <div class="phase-step" id="phaseResult">
+      <div class="phase-circle">6</div>
+      <div>Result</div>
+    </div>
+  </div>
+
+  <!-- LOBBY PHASE -->
+  <div class="phase-container" id="lobbyPhase">
+    <h3>Game Lobby</h3>
+    <div class="input-group">
+      <label>Room ID:</label>
+      <input type="text" id="roomId" placeholder="Enter room ID">
+    </div>
+    <div class="input-group">
+      <label>Your Name:</label>
+      <input type="text" id="playerName" placeholder="Enter your name">
+    </div>
+    <div class="input-group">
+      <label>Room Password:</label>
+      <input type="password" id="roomPassword" placeholder="Enter password">
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button onclick="createRoom()" class="btn-secondary">Create Room</button>
+      <button onclick="joinRoom()" class="btn-success">Join Room</button>
+      <button onclick="setReady()" id="readyBtn" class="hidden">Ready</button>
+      <button onclick="startGame()" id="startBtn" class="hidden btn-warning">Start Game</button>
+    </div>
+    
+    <div id="playerList" class="player-list" style="margin-top: 30px;"></div>
+  </div>
+
+  <!-- BOX SELECTION PHASE -->
+  <div class="phase-container hidden" id="boxPhase">
+    <h3>Select Your Box</h3>
+    <p>Choose one box to receive your secret role:</p>
+    <div class="box-grid" id="boxGrid"></div>
+    <div id="selectedBoxMsg" style="text-align: center; margin-top: 20px; padding: 15px; background: #e8f4fc; border-radius: 8px;"></div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="checkBoxPhaseComplete()" id="checkBoxBtn" class="hidden">Check Status</button>
+    </div>
+  </div>
+
+  <!-- INVESTIGATION PHASE -->
+  <div class="phase-container hidden" id="investigationPhase">
+    <h3>Investigation Phase</h3>
+    <div id="investigationInstructions" style="margin-bottom: 20px;"></div>
+    <div id="investigationOptions" class="player-list"></div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="checkInvestigationComplete()" id="checkInvestigationBtn" class="hidden">Check Status</button>
+    </div>
+  </div>
+
+  <!-- MESSAGE PHASE -->
+  <div class="phase-container hidden" id="messagePhase">
+    <h3>Message Phase</h3>
+    <div id="messagesContainer" class="messages-container"></div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="proceedToAction()" id="proceedToActionBtn">Proceed to Action Phase</button>
+    </div>
+  </div>
+
+  <!-- ACTION PHASE -->
+  <div class="phase-container hidden" id="actionPhase">
+    <h3>Action Phase</h3>
+    <div id="actionInstructions" style="margin-bottom: 20px;"></div>
+    <div id="actionOptions" class="player-list"></div>
+    <div id="spyActionUI" class="hidden">
+      <h4>Spy Predictions</h4>
+      <div class="input-group">
+        <label>Minister Guess (Player ID):</label>
+        <input type="text" id="ministerGuess" placeholder="Enter Minister's Player ID">
+      </div>
+      <div class="input-group">
+        <label>Jester Guess (Player ID):</label>
+        <input type="text" id="jesterGuess" placeholder="Enter Jester's Player ID">
+      </div>
+      <button onclick="submitSpyAction()">Submit Predictions</button>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="checkActionsComplete()" id="checkActionsBtn" class="hidden">Check Status</button>
+    </div>
+  </div>
+
+  <!-- RESULTS PHASE -->
+  <div class="phase-container hidden" id="resultsPhase">
+    <h3>Cycle Results</h3>
+    <div id="resultsContainer" class="results-grid"></div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="nextCycle()" id="nextCycleBtn">Next Cycle</button>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="phase-container hidden" id="leaderboardPhase">
+    <h3>Game Over - Final Leaderboard</h3>
+    <div id="leaderboardContainer" class="leaderboard-grid"></div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button onclick="returnToLobby()">Return to Lobby</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyeYATmmUUU-4CPlHn4LXkSdvuxYuwcUwm7aNc7T0nAn80O_p0JJqtsBzBlwB5FIcaY/exec"; // Replace with your web app URL
+
+let gameState = {
+  roomId: "",
+  playerId: "",
+  playerName: "",
+  role: "",
+  currentCycle: 1,
+  isHost: false,
+  players: []
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  updatePhaseProgress('lobby');
+});
+
+// Phase Progress UI
+function updatePhaseProgress(activePhase) {
+  const phases = ['lobby', 'box', 'investigation', 'message', 'action', 'result'];
+  phases.forEach(phase => {
+    const element = document.getElementById(`phase${phase.charAt(0).toUpperCase() + phase.slice(1)}`);
+    element.classList.remove('active', 'completed');
+    
+    if (phases.indexOf(phase) < phases.indexOf(activePhase)) {
+      element.classList.add('completed');
+    } else if (phase === activePhase) {
+      element.classList.add('active');
+    }
+  });
+}
+
+// API Helper
+async function callAPI(action, data = {}) {
+  data.action = action;
+  data.roomId = gameState.roomId;
+  data.playerId = gameState.playerId;
+  
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('API Error:', error);
+    alert('Error connecting to server. Please try again.');
+    return { error: 'Connection failed' };
+  }
+}
+
+// LOBBY FUNCTIONS
+async function createRoom() {
+  const playerName = document.getElementById('playerName').value.trim();
+  const password = document.getElementById('roomPassword').value.trim();
+  
+  if (!playerName || !password) {
+    alert('Please enter your name and a room password');
+    return;
+  }
+  
+  const data = {
+    hostName: playerName,
+    password: password,
+    maxPlayers: 10,
+    totalCycles: 5
+  };
+  
+  const result = await callAPI('CREATE_ROOM', data);
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  gameState.roomId = result.roomId;
+  gameState.playerId = result.hostId;
+  gameState.playerName = playerName;
+  gameState.isHost = true;
+  
+  document.getElementById('currentRoomId').textContent = result.roomId;
+  document.getElementById('readyBtn').classList.remove('hidden');
+  document.getElementById('startBtn').classList.remove('hidden');
+  
+  alert(`Room created! Room ID: ${result.roomId}`);
+  updatePlayerList();
+}
+
+async function joinRoom() {
+  gameState.roomId = document.getElementById('roomId').value.trim();
+  gameState.playerName = document.getElementById('playerName').value.trim();
+  const password = document.getElementById('roomPassword').value.trim();
+  
+  if (!gameState.roomId || !gameState.playerName || !password) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  const result = await callAPI('JOIN_ROOM', {
+    roomId: gameState.roomId,
+    playerName: gameState.playerName,
+    password: password
+  });
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  gameState.playerId = result.playerId;
+  document.getElementById('currentRoomId').textContent = gameState.roomId;
+  document.getElementById('readyBtn').classList.remove('hidden');
+  
+  alert('Joined room successfully!');
+  updatePlayerList();
+}
+
+async function setReady() {
+  const result = await callAPI('SET_READY');
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  document.getElementById('readyBtn').disabled = true;
+  document.getElementById('readyBtn').textContent = 'Ready ✓';
+  updatePlayerList();
+}
+
+async function startGame() {
+  if (!gameState.isHost) return;
+  
+  const result = await callAPI('START_GAME');
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  showBoxPhase();
+}
+
+async function updatePlayerList() {
+  const result = await callAPI('GET_PLAYERS');
+  
+  if (result.error) {
+    console.error('Failed to get players:', result.error);
+    return;
+  }
+  
+  gameState.players = result.players || [];
+  
+  const playerList = document.getElementById('playerList');
+  playerList.innerHTML = '';
+  
+  result.players.forEach(player => {
+    const card = document.createElement('div');
+    card.className = `player-card ${player.isReady ? 'ready' : ''} ${player.isHost ? 'host' : ''}`;
+    
+    card.innerHTML = `
+      <div class="player-name">
+        <span class="status-indicator ${player.isReady ? 'status-ready' : 'status-waiting'}"></span>
+        ${player.name} ${player.isHost ? '👑' : ''}
+      </div>
+      <div class="player-role">${player.role || 'Not assigned'}</div>
+      ${player.isReady ? '<div style="color: #27ae60; font-size: 0.8rem;">Ready ✓</div>' : ''}
+    `;
+    
+    playerList.appendChild(card);
+  });
+}
+
+// BOX PHASE
+function showBoxPhase() {
+  document.getElementById('lobbyPhase').classList.add('hidden');
+  document.getElementById('boxPhase').classList.remove('hidden');
+  updatePhaseProgress('box');
+  
+  const boxGrid = document.getElementById('boxGrid');
+  boxGrid.innerHTML = '';
+  
+  // Create 10 boxes (adjust based on player count if needed)
+  for (let i = 1; i <= 10; i++) {
+    const box = document.createElement('div');
+    box.className = 'box';
+    box.textContent = i;
+    box.onclick = () => selectBox(i);
+    boxGrid.appendChild(box);
+  }
+}
+
+async function selectBox(boxNumber) {
+  const result = await callAPI('SELECT_BOX', { box: boxNumber });
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  gameState.role = result.role;
+  document.getElementById('currentRole').textContent = result.role;
+  
+  // Mark box as selected
+  document.querySelectorAll('.box').forEach(box => {
+    if (box.textContent == boxNumber) {
+      box.classList.add('selected');
+      box.onclick = null;
+    }
+  });
+  
+  document.getElementById('selectedBoxMsg').innerHTML = `
+    <strong>Box ${boxNumber} selected!</strong><br>
+    Your role is: <span class="role-badge role-${result.role.toLowerCase()}">${result.role}</span><br>
+    Base Score: ${result.baseScore} points
+  `;
+  
+  document.getElementById('checkBoxBtn').classList.remove('hidden');
+}
+
+async function checkBoxPhaseComplete() {
+  const result = await callAPI('CHECK_BOX_COMPLETE');
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  if (result.complete) {
+    if (gameState.isHost) {
+      await callAPI('RESOLVE_BOX');
+    }
+    showInvestigationPhase();
+  } else {
+    alert('Waiting for all players to select boxes...');
+    updatePlayerList();
+  }
+}
+
+// INVESTIGATION PHASE
+function showInvestigationPhase() {
+  document.getElementById('boxPhase').classList.add('hidden');
+  document.getElementById('investigationPhase').classList.remove('hidden');
+  updatePhaseProgress('investigation');
+  
+  const instructions = document.getElementById('investigationInstructions');
+  const options = document.getElementById('investigationOptions');
+  
+  if (gameState.role === 'Minister' || gameState.role === 'Jester') {
+    instructions.innerHTML = `<p>As the <strong>${gameState.role}</strong>, you may investigate one player to learn their true role.</p>`;
+    loadInvestigablePlayers();
+  } else {
+    instructions.innerHTML = `<p>You are <strong>${gameState.role}</strong>. Waiting for Minister and Jester to complete their investigations...</p>`;
+    options.innerHTML = '';
+    document.getElementById('checkInvestigationBtn').classList.remove('hidden');
+  }
+}
+
+async function loadInvestigablePlayers() {
+  const result = await callAPI('GET_INVESTIGABLE_PLAYERS');
+  
+  if (result.error) {
+    console.error('Failed to load players:', result.error);
+    return;
+  }
+  
+  const options = document.getElementById('investigationOptions');
+  options.innerHTML = '';
+  
+  result.players.forEach(player => {
+    const card = document.createElement('div');
+    card.className = 'player-card';
+    card.innerHTML = `
+      <div class="player-name">${player.name}</div>
+      <div class="player-role">Role: ???</div>
+      <button onclick="investigatePlayer('${player.id}')" style="margin-top: 10px;">Investigate</button>
+    `;
+    options.appendChild(card);
+  });
+}
+
+async function investigatePlayer(targetId) {
+  const result = await callAPI('INVESTIGATE', { targetId });
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  alert(result.result);
+  document.getElementById('checkInvestigationBtn').classList.remove('hidden');
+}
+
+async function checkInvestigationComplete() {
+  if (gameState.isHost) {
+    const result = await callAPI('RESOLVE_INVESTIGATION');
+    
+    if (result.error && result.error !== 'WAITING_FOR_INVESTIGATIONS') {
+      alert('Error: ' + result.error);
+      return;
+    }
+    
+    if (!result.error) {
+      showMessagePhase();
+    } else {
+      alert('Waiting for investigations to complete...');
+    }
+  } else {
+    alert('Only host can advance to next phase');
+  }
+}
+
+// MESSAGE PHASE
+function showMessagePhase() {
+  document.getElementById('investigationPhase').classList.add('hidden');
+  document.getElementById('messagePhase').classList.remove('hidden');
+  updatePhaseProgress('message');
+  
+  loadMessages();
+}
+
+async function loadMessages() {
+  const result = await callAPI('GET_MESSAGES');
+  
+  if (result.error) {
+    console.error('Failed to load messages:', result.error);
+    return;
+  }
+  
+  const container = document.getElementById('messagesContainer');
+  container.innerHTML = '';
+  
+  if (result.messages && result.messages.length > 0) {
+    result.messages.forEach((msg, index) => {
+      const card = document.createElement('div');
+      card.className = 'message-card';
+      card.innerHTML = `
+        <h4>Message ${index + 1}</h4>
+        <p>${msg}</p>
+        <div style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem;">
+          Remember: One of these messages is TRUE, one is FALSE
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } else {
+    container.innerHTML = '<p>No messages for your role at this time.</p>';
+  }
+}
+
+async function proceedToAction() {
+  if (gameState.isHost) {
+    await callAPI('RESOLVE_MESSAGES');
+  }
+  showActionPhase();
+}
+
+// ACTION PHASE
+function showActionPhase() {
+  document.getElementById('messagePhase').classList.add('hidden');
+  document.getElementById('actionPhase').classList.remove('hidden');
+  updatePhaseProgress('action');
+  
+  const instructions = document.getElementById('actionInstructions');
+  const options = document.getElementById('actionOptions');
+  const spyUI = document.getElementById('spyActionUI');
+  
+  instructions.innerHTML = `<p>You are the <strong>${gameState.role}</strong}. Take your action:</p>`;
+  
+  if (gameState.role === 'Police' || gameState.role === 'Knight') {
+    spyUI.classList.add('hidden');
+    loadActionTargets();
+  } else if (gameState.role === 'Spy') {
+    options.innerHTML = '';
+    spyUI.classList.remove('hidden');
+  } else {
+    options.innerHTML = '<p>No action required for your role. Waiting for others...</p>';
+    spyUI.classList.add('hidden');
+    document.getElementById('checkActionsBtn').classList.remove('hidden');
+  }
+}
+
+async function loadActionTargets() {
+  const result = await callAPI('GET_PLAYABLE_TARGETS');
+  
+  if (result.error) {
+    console.error('Failed to load targets:', result.error);
+    return;
+  }
+  
+  const options = document.getElementById('actionOptions');
+  options.innerHTML = '';
+  
+  result.players.forEach(player => {
+    const card = document.createElement('div');
+    card.className = 'player-card';
+    
+    const actionText = gameState.role === 'Police' ? 'Arrest' : 'Protect';
+    
+    card.innerHTML = `
+      <div class="player-name">${player.name}</div>
+      <div class="player-role">Role: ???</div>
+      <button onclick="submitAction('${player.id}')" style="margin-top: 10px;">${actionText}</button>
+    `;
+    options.appendChild(card);
+  });
+}
+
+async function submitAction(targetId) {
+  const actionType = gameState.role === 'Police' ? 'POLICE_ACTION' : 'KNIGHT_ACTION';
+  const result = await callAPI(actionType, { targetId });
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  alert(result.message);
+  document.getElementById('checkActionsBtn').classList.remove('hidden');
+}
+
+async function submitSpyAction() {
+  const ministerGuess = document.getElementById('ministerGuess').value.trim();
+  const jesterGuess = document.getElementById('jesterGuess').value.trim();
+  
+  if (!ministerGuess || !jesterGuess) {
+    alert('Please enter both guesses');
+    return;
+  }
+  
+  const result = await callAPI('SPY_ACTION', {
+    ministerGuessId: ministerGuess,
+    jesterGuessId: jesterGuess
+  });
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  alert(result.message);
+  document.getElementById('checkActionsBtn').classList.remove('hidden');
+}
+
+async function checkActionsComplete() {
+  if (gameState.isHost) {
+    const result = await callAPI('RESOLVE_ACTIONS');
+    
+    if (result.error && result.error !== 'WAITING_FOR_ACTIONS') {
+      alert('Error: ' + result.error);
+      return;
+    }
+    
+    if (!result.error) {
+      showResultsPhase(result);
+    } else {
+      alert('Waiting for all actions to complete...');
+    }
+  } else {
+    alert('Only host can resolve actions');
+  }
+}
+
+// RESULTS PHASE
+function showResultsPhase(resultData) {
+  document.getElementById('actionPhase').classList.add('hidden');
+  document.getElementById('resultsPhase').classList.remove('hidden');
+  updatePhaseProgress('result');
+  
+  const container = document.getElementById('resultsContainer');
+  container.innerHTML = '';
+  
+  if (resultData && resultData.players) {
+    const thiefEscaped = resultData.thiefEscaped;
+    
+    container.innerHTML += `
+      <div class="result-card ${thiefEscaped ? '' : 'winner'}">
+        <div class="player-info">
+          <strong>Thief Status:</strong> ${thiefEscaped ? 'Escaped! +900 points' : 'Caught! +0 points'}
+        </div>
+      </div>
+    `;
+    
+    resultData.players.forEach((player, index) => {
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      
+      if (player.name === gameState.playerName) {
+        card.style.border = '2px solid #3498db';
+        card.style.background = '#e8f4fc';
+      }
+      
+      card.innerHTML = `
+        <div class="rank">${index + 1}</div>
+        <div class="player-info">
+          <strong>${player.name}</strong>
+          <div style="display: flex; align-items: center; margin-top: 5px;">
+            <span class="role-badge role-${player.role.toLowerCase()}">${player.role}</span>
+            ${player.bonusBlocked ? '<span style="margin-left: 10px; color: #e74c3c;">⚠️ Bonus Blocked</span>' : ''}
+          </div>
+        </div>
+        <div class="score">${player.score}</div>
+      `;
+      
+      container.appendChild(card);
+    });
+  }
+}
+
+async function nextCycle() {
+  const result = await callAPI('NEXT_CYCLE');
+  
+  if (result.error) {
+    alert('Error: ' + result.error);
+    return;
+  }
+  
+  if (result.message === 'GAME_OVER') {
+    showLeaderboard(result.leaderboard);
+  } else {
+    gameState.currentCycle = result.currentCycle;
+    document.getElementById('currentCycle').textContent = result.currentCycle;
+    alert(`Cycle ${result.currentCycle} starting!`);
+    showBoxPhase();
+  }
+}
+
+// LEADERBOARD
+function showLeaderboard(leaderboardData) {
+  document.getElementById('resultsPhase').classList.add('hidden');
+  document.getElementById('leaderboardPhase').classList.remove('hidden');
+  
+  const container = document.getElementById('leaderboardContainer');
+  container.innerHTML = '';
+  
+  if (leaderboardData) {
+    leaderboardData.forEach((player, index) => {
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      
+      if (index === 0) card.classList.add('winner');
+      
+      card.innerHTML = `
+        <div class="rank">${index + 1}</div>
+        <div class="player-info">
+          <strong>${player.name}</strong>
+          <div style="margin-top: 5px;">
+            <span class="role-badge role-${player.role.toLowerCase()}">${player.role}</span>
+          </div>
+        </div>
+        <div class="score">${player.totalScore}</div>
+      `;
+      
+      container.appendChild(card);
+    });
+  }
+}
+
+function returnToLobby() {
+  location.reload();
+}
+
+// Polling for updates
+setInterval(async () => {
+  if (gameState.roomId && gameState.playerId) {
+    await updatePlayerList();
+  }
+}, 5000);
+</script>
+</body>
+  </html>
