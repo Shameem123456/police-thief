@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police & Thief | Game</title>
+    <style>
+      
+        /* [KEEP ALL EXISTING CSS STYLES FROM YOUR ORIGINAL game.html] */
+        /* Add these additional styles for our game phases */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0f2e 0%, #1a1f4b 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .game-header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .cycle-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .cycle-badge {
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+        }
+
+        .cycle-text {
+            font-size: 1.2rem;
+            color: #A9B7D6;
+        }
+
+        .phase-info {
+            text-align: center;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .phase-title {
+            font-size: 1.2rem;
+            color: #A9B7D6;
+            margin-bottom: 8px;
+        }
+
+        .phase-name {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .timer {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #FF6B6B, #FFA726);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-label {
+            color: #A9B7D6;
+            font-size: 1.1rem;
+        }
+
+        .main-game {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 30px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+
+        @media (min-width: 992px) {
+            .main-game {
+                grid-template-columns: 1fr 400px;
+            }
+        }
+
+        .role-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            border: 2px solid rgba(138, 43, 226, 0.2);
+            text-align: center;
+            animation: slideIn 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .role-title {
+            font-size: 1.4rem;
+            color: #A9B7D6;
+            margin-bottom: 20px;
+        }
+
+        .role-display {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 30px 0;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .role-description {
+            color: #A9B7D6;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+        }
+
+        .action-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            border: 2px solid rgba(0, 191, 255, 0.2);
+        }
+
+        .action-title {
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #00BFFF, #1E90FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .action-content {
+            display: none;
+        }
+
+        .action-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .player-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .player-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .player-option:hover {
+            background: rgba(0, 191, 255, 0.1);
+            border-color: rgba(0, 191, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .player-option.selected {
+            background: rgba(138, 43, 226, 0.2);
+            border-color: rgba(138, 43, 226, 0.5);
+            transform: scale(1.05);
+        }
+
+        .player-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .player-role {
+            font-size: 0.9rem;
+            color: #A9B7D6;
+            opacity: 0;
+        }
+
+        .player-option:hover .player-role {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            border: none;
+            color: white;
+            padding: 20px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: block;
+            width: 100%;
+            margin-top: 30px;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(138, 43, 226, 0.4);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 5px solid #00BFFF;
+        }
+
+        .instructions h3 {
+            color: #00BFFF;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .instructions p {
+            color: #A9B7D6;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .phase-progress {
+            margin: 40px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8A2BE2, #00BFFF);
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        .phase-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .phase-step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            padding-top: 30px;
+        }
+
+        .phase-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .phase-step.active::before {
+            background: linear-gradient(135deg, #8A2BE2, #00BFFF);
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+        }
+
+        .phase-step.completed::before {
+            background: #2ED573;
+            border-color: rgba(46, 213, 115, 0.8);
+        }
+
+        .step-label {
+            color: #A9B7D6;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #00BFFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 20px 30px;
+            border-radius: 16px;
+            border-left: 5px solid #00BFFF;
+            transform: translateX(400px);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .role-hidden {
+            font-size: 2.5rem;
+            color: #FF6B6B;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .phase-info {
+                order: -1;
+                min-width: 100%;
+            }
+            
+            .main-game {
+                grid-template-columns: 1fr;
+            }
+            
+            .role-display {
+                font-size: 2.5rem;
+                min-height: 100px;
+            }
+            
+            .timer {
+                font-size: 2.5rem;
+            }
+          }
+        .box-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .game-box {
+            background: rgba(138, 43, 226, 0.2);
+            border: 3px solid rgba(138, 43, 226, 0.3);
+            border-radius: 15px;
+            padding: 30px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-box:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(138, 43, 226, 0.3);
+            border-color: rgba(0, 191, 255, 0.5);
+        }
+        
+        .game-box.taken {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .game-box.taken::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: #2ED573;
+            font-size: 1.2rem;
+        }
+        
+        .messages-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 5px solid #00BFFF;
+        }
+        
+        .message {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .message.warning {
+            border-color: #FFA726;
+            background: rgba(255, 167, 38, 0.1);
+        }
+        
+        .message.info {
+            border-color: #00BFFF;
+            background: rgba(0, 191, 255, 0.1);
+        }
+        
+        .phase-instruction {
+            font-size: 1.2rem;
+            color: #A9B7D6;
+            text-align: center;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+        }
+        
+        .turn-indicator {
+            background: linear-gradient(135deg, rgba(255, 167, 38, 0.2), rgba(255, 167, 38, 0.1));
+            border: 3px solid rgba(255, 167, 38, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 167, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0); }
+        }
+        
+        .score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            z-index: 100;
+        }
+        
+        /* [REST OF THE EXISTING CSS REMAINS THE SAME] */
+    </style>
+</head>
+<body>
+    <div class="score-display">
+        <div style="font-size: 0.9rem; color: #A9B7D6;">Total Score</div>
+        <div style="font-size: 1.8rem; font-weight: bold; color: #00BFFF;" id="totalScore">0</div>
+    </div>
+
+    <div class="game-header">
+        <div class="header-content">
+            <div class="cycle-info">
+                <div class="cycle-badge" id="cycleBadge">1</div>
+                <div class="cycle-text">Cycle</div>
+            </div>
+            
+            <div class="phase-info">
+                <div class="phase-title">CURRENT PHASE</div>
+                <div class="phase-name" id="phaseName">BOX SELECTION</div>
+            </div>
+            
+            <div class="timer-container">
+                <div class="timer" id="timer">--</div>
+                <div class="timer-label" id="timerLabel">waiting</div>
+            </div>
+        </div>
+        
+        <div class="phase-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="phase-steps" id="phaseSteps">
+                <!-- Phase steps will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="main-game">
+        <div class="role-section">
+            <div class="role-title">YOUR ROLE</div>
+            <div class="role-display" id="roleDisplay">
+                <div class="role-hidden">🎁 Select a Box</div>
+            </div>
+            <div class="role-description" id="roleDescription">
+                Click on a box to reveal your role for this cycle.
+                Each box contains a unique role with different abilities.
+            </div>
+            <div class="score-display-mini" style="margin-top: 20px;">
+                <div style="color: #A9B7D6;">Role Score:</div>
+                <div style="font-size: 1.8rem; color: #00BFFF; font-weight: bold;" id="roleScore">0</div>
+            </div>
+        </div>
+
+        <div class="action-section">
+            <h2 class="action-title" id="actionTitle">Game Phase</h2>
+            
+            <!-- BOX SELECTION PHASE -->
+            <div class="action-content active" id="boxSelectionPhase">
+                <div class="phase-instruction">
+                    <h3>🎁 Box Selection Phase</h3>
+                    <p>Click on any available box to get your role for this cycle.</p>
+                    <p><em>Each player takes turns selecting boxes.</em></p>
+                </div>
+                
+                <div class="turn-indicator" id="turnIndicator">
+                    <div style="font-size: 1.2rem;">Waiting for your turn...</div>
+                </div>
+                
+                <div class="box-container" id="boxesContainer">
+                    <!-- Boxes will be dynamically added here -->
+                </div>
+                
+                <div class="messages-container">
+                    <div class="message info">
+                        <strong>How it works:</strong>
+                        <p>1. Each box contains a unique role</p>
+                        <p>2. Roles are randomly assigned each cycle</p>
+                        <p>3. Click a box when it's your turn</p>
+                        <p>4. Your role determines your abilities this cycle</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MINISTER & JESTER PHASE -->
+            <div class="action-content" id="ministerJesterPhase">
+                <div class="phase-instruction">
+                    <h3>🎭 Minister & Jester Phase</h3>
+                    <p id="mjInstruction">As the <span id="mjRole">[Role]</span>, investigate one player to learn their true role.</p>
+                </div>
+                
+                <div class="player-selection" id="mjPlayers"></div>
+                
+                <button class="action-btn" onclick="submitInvestigation()" id="mjSubmitBtn">
+                    Investigate Selected Player
+                </button>
+                
+                <div class="messages-container">
+                    <div class="message warning">
+                        <strong>Important:</strong>
+                        <p>• Minister learns true role → Sends TRUE info to Police, FALSE to Knight</p>
+                        <p>• Jester learns true role → Sends TRUE info to Knight, FALSE to Police</p>
+                        <p>• Messages use same role but different player for false info</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- POLICE & KNIGHT PHASE -->
+            <div class="action-content" id="policeKnightPhase">
+                <div class="phase-instruction">
+                    <h3>🚔 Police & Knight Phase</h3>
+                    <p>You received 2 messages. One is TRUE, one is FALSE.</p>
+                </div>
+                
+                <div class="messages-container">
+                    <div id="receivedMessages">
+                        <div class="message">
+                            <strong>Message 1:</strong> <span id="message1">Loading...</span>
+                        </div>
+                        <div class="message">
+                            <strong>Message 2:</strong> <span id="message2">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="message info" style="margin-top: 15px;">
+                        <strong>Remember:</strong>
+                        <p id="pkHint">Police: True message from Minister, False from Jester<br>
+                        Knight: True message from Jester, False from Minister</p>
+                    </div>
+                </div>
+                
+                <div class="player-selection" id="pkPlayers"></div>
+                
+                <button class="action-btn" onclick="submitPKAction()" id="pkSubmitBtn">
+                    Submit Selection
+                </button>
+            </div>
+            
+            <!-- SPY PHASE -->
+            <div class="action-content" id="spyPhase">
+                <div class="phase-instruction">
+                    <h3>🕵️ Spy Phase</h3>
+                    <p>Predict who the Minister and Jester are.</p>
+                    <p><em>Select Minister first, then Jester</em></p>
+                </div>
+                
+                <div class="player-selection" id="spyPlayers"></div>
+                
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                    <div><strong>Selected Minister:</strong> <span id="selectedMinister">None</span></div>
+                    <div><strong>Selected Jester:</strong> <span id="selectedJester">None</span></div>
+                </div>
+                
+                <button class="action-btn" onclick="submitSpyPrediction()" id="spySubmitBtn" disabled>
+                    Submit Predictions
+                </button>
+                
+                <div class="messages-container">
+                    <div class="message warning">
+                        <strong>Spy's Power:</strong>
+                        <p>• Correct Minister guess: +200 points</p>
+                        <p>• Correct Jester guess: +200 points</p>
+                        <p>• Blocks Minister/Jester bonuses when correct</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WAITING PHASE -->
+            <div class="action-content" id="waitingPhase">
+                <div class="phase-instruction">
+                    <h3>⏳ Waiting for Others</h3>
+                    <p id="waitingMessage">Other players are completing their actions...</p>
+                </div>
+                
+                <div class="loader" style="margin: 40px auto;"></div>
+                
+                <div class="messages-container">
+                    <div class="message info">
+                        <strong>Current Phase:</strong> <span id="currentPhaseName">Loading...</span>
+                        <div style="margin-top: 15px;">
+                            <div>Players completed: <span id="completedCount">0</span>/<span id="totalPlayersCount">0</span></div>
+                            <div style="margin-top: 10px; height: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 5px;">
+                                <div id="completionBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #8A2BE2, #00BFFF); border-radius: 5px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="loader" id="actionLoader" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbz1BwY4aXS_4t1Czdwc9Du8I2_SYI-9kW9cfcSjQJVUhz8gWRTHx8Fjy5tZRqRL_LPH/exec";
+        const POLL_INTERVAL = 3000;
+
+        // Game state
+        let gameState = {
+            hostId: localStorage.getItem('host_id'),
+            playerId: localStorage.getItem('player_id'),
+            playerName: localStorage.getItem('player_name'),
+            myRole: '',
+            currentPhase: '',
+            currentCycle: 1,
+            boxes: [],
+            players: [],
+            selectedPlayer: '',
+            selectedMinister: '',
+            selectedJester: '',
+            messages: [],
+            totalScore: 0
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!gameState.hostId || !gameState.playerId) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            initPhaseProgress();
+            pollGameState();
+            setInterval(pollGameState, POLL_INTERVAL);
+        });
+
+        // Initialize phase progress
+        function initPhaseProgress() {
+            const phases = [
+                { id: 'BOX_SELECTION', label: 'Box Selection' },
+                { id: 'MINISTER_JESTER', label: 'Minister/Jester' },
+                { id: 'POLICE_KNIGHT', label: 'Police/Knight' },
+                { id: 'SPY', label: 'Spy' },
+                { id: 'RESULTS', label: 'Results' }
+            ];
+            
+            const container = document.getElementById('phaseSteps');
+            container.innerHTML = '';
+            
+            phases.forEach(phase => {
+                const step = document.createElement('div');
+                step.className = 'phase-step';
+                step.id = `step-${phase.id}`;
+                step.innerHTML = `<div class="step-label">${phase.label}</div>`;
+                container.appendChild(step);
+            });
+        }
+
+        // Poll game state
+        async function pollGameState() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'GET_GAME_STATE',
+                        host_id: gameState.hostId,
+                        player_id: gameState.playerId
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.error) {
+                    showNotification(data.error);
+                    return;
+                }
+                
+                updateGameState(data);
+            } catch (error) {
+                console.error('Poll error:', error);
+            }
+        }
+
+        // Update game state
+        function updateGameState(data) {
+            gameState.currentPhase = data.phase;
+            gameState.currentCycle = data.cycle;
+            gameState.myRole = data.role;
+            gameState.totalScore = data.total_score || 0;
+            
+            // Update UI
+            document.getElementById('cycleBadge').textContent = data.cycle;
+            document.getElementById('phaseName').textContent = 
+                data.phase.replace(/_/g, ' ');
+            document.getElementById('totalScore').textContent = gameState.totalScore;
+            
+            // Update phase progress
+            updatePhaseProgress(data.phase);
+            
+            // Show appropriate phase content
+            showPhaseContent(data.phase);
+            
+            // Load additional data based on phase
+            switch(data.phase) {
+                case 'BOX_SELECTION':
+                    loadBoxes();
+                    checkTurn();
+                    break;
+                case 'MINISTER_JESTER':
+                    if (['Minister', 'Jester'].includes(gameState.myRole)) {
+                        loadPlayersForMJ();
+                    } else {
+                        showWaitingPhase('Minister & Jester are investigating players...');
+                    }
+                    break;
+                case 'POLICE_KNIGHT':
+                    if (['Police', 'Knight'].includes(gameState.myRole)) {
+                        loadMessages();
+                        loadPlayersForPK();
+                    } else {
+                        showWaitingPhase('Police & Knight are making decisions...');
+                    }
+                    break;
+                case 'SPY':
+                    if (gameState.myRole === 'Spy') {
+                        loadPlayersForSpy();
+                    } else {
+                        showWaitingPhase('Spy is predicting identities...');
+                    }
+                    break;
+                case 'RESULTS':
+                    showResults();
+                    break;
+            }
+        }
+
+        // Update phase progress
+        function updatePhaseProgress(phase) {
+            const phases = ['BOX_SELECTION', 'MINISTER_JESTER', 'POLICE_KNIGHT', 'SPY', 'RESULTS'];
+            let foundCurrent = false;
+            
+            phases.forEach(p => {
+                const step = document.getElementById(`step-${p}`);
+                step.classList.remove('active', 'completed');
+                
+                if (p === phase) {
+                    step.classList.add('active');
+                    foundCurrent = true;
+                } else if (!foundCurrent) {
+                    step.classList.add('completed');
+                }
+            });
+            
+            // Update progress bar
+            const currentIndex = phases.indexOf(phase);
+            const progress = ((currentIndex + 1) / phases.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        // Show phase content
+        function showPhaseContent(phase) {
+            // Hide all phases
+            const allPhases = ['boxSelectionPhase', 'ministerJesterPhase', 'policeKnightPhase', 'spyPhase', 'waitingPhase'];
+            allPhases.forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            
+            // Show current phase
+            switch(phase) {
+                case 'BOX_SELECTION':
+                    document.getElementById('boxSelectionPhase').classList.add('active');
+                    break;
+                case 'MINISTER_JESTER':
+                    if (['Minister', 'Jester'].includes(gameState.myRole)) {
+                        document.getElementById('ministerJesterPhase').classList.add('active');
+                    } else {
+                        document.getElementById('waitingPhase').classList.add('active');
+                    }
+                    break;
+                case 'POLICE_KNIGHT':
+                    if (['Police', 'Knight'].includes(gameState.myRole)) {
+                        document.getElementById('policeKnightPhase').classList.add('active');
+                    } else {
+                        document.getElementById('waitingPhase').classList.add('active');
+                    }
+                    break;
+                case 'SPY':
+                    if (gameState.myRole === 'Spy') {
+                        document.getElementById('spyPhase').classList.add('active');
+                    } else {
+                        document.getElementById('waitingPhase').classList.add('active');
+                    }
+                    break;
+                default:
+                    document.getElementById('waitingPhase').classList.add('active');
+            }
+        }
+
+        // BOX SELECTION FUNCTIONS
+        async function loadBoxes() {
+            try {
+                // In real implementation, fetch boxes from API
+                // For demo, create mock boxes
+                const boxesContainer = document.getElementById('boxesContainer');
+                boxesContainer.innerHTML = '';
+                
+                for (let i = 0; i < 10; i++) {
+                    const box = document.createElement('div');
+                    box.className = 'game-box';
+                    box.innerHTML = '🎁';
+                    box.onclick = () => selectBox(i);
+                    
+                    // Mock taken boxes
+                    if (i < 3) { // First 3 boxes taken for demo
+                        box.classList.add('taken');
+                        box.onclick = null;
+                    }
+                    
+                    boxesContainer.appendChild(box);
+                }
+            } catch (error) {
+                console.error('Error loading boxes:', error);
+            }
+        }
+
+        async function selectBox(boxIndex) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'SELECT_BOX',
+                        host_id: gameState.hostId,
+                        player_id: gameState.playerId,
+                        box_index: boxIndex,
+                        cycle: gameState.currentCycle
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    gameState.myRole = data.role;
+                    updateRoleDisplay(data.role, data.score);
+                    showNotification(`You are the ${data.role}!`, 'success');
+                } else {
+                    showNotification(data.error || 'Failed to select box');
+                }
+            } catch (error) {
+                showNotification('Network error');
+            }
+        }
+
+        function checkTurn() {
+            // In real implementation, check whose turn it is
+            // For demo, show turn indicator
+            const turnIndicator = document.getElementById('turnIndicator');
+            turnIndicator.innerHTML = '<div style="font-size: 1.2rem;">🎮 Your turn! Select a box.</div>';
+        }
+
+        function updateRoleDisplay(role, score) {
+            document.getElementById('roleDisplay').innerHTML = 
+                `<div style="background: linear-gradient(135deg, #8A2BE2, #00BFFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 3.5rem; font-weight: 900;">${role}</div>`;
+            document.getElementById('roleScore').textContent = score;
+            
+            // Update role description based on role
+            const descriptions = {
+                'Minister': 'Investigate players to learn their true roles. Help Police catch the Thief.',
+                'Jester': 'Investigate players to learn their true roles. Help Knight protect the Thief.',
+                'Police': 'Receive 2 messages (1 true, 1 false). Identify the Thief.',
+                'Knight': 'Receive 2 messages (1 true, 1 false). Protect players from investigation.',
+                'Spy': 'Predict who the Minister and Jester are. Block their bonuses.',
+                'Thief': 'Avoid detection. Escape if Police is wrong OR Knight protects you.'
+            };
+            
+            document.getElementById('roleDescription').textContent = 
+                descriptions[role] || 'Play your role strategically to earn points.';
+        }
+
+        // MINISTER & JESTER FUNCTIONS
+        function loadPlayersForMJ() {
+            const container = document.getElementById('mjPlayers');
+            container.innerHTML = '';
+            
+            // Update instruction
+            const mjInstruction = document.getElementById('mjInstruction');
+            const mjRole = document.getElementById('mjRole');
+            mjRole.textContent = gameState.myRole;
+            
+            if (gameState.myRole === 'Minister') {
+                mjInstruction.textContent = 'As the Minister, investigate one player to learn their true role. Your true info goes to Police, false info to Knight.';
+            } else {
+                mjInstruction.textContent = 'As the Jester, investigate one player to learn their true role. Your true info goes to Knight, false info to Police.';
+            }
+            
+            // Mock players
+            const mockPlayers = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'];
+            mockPlayers.forEach(player => {
+                const option = document.createElement('div');
+                option.className = 'player-option';
+                option.innerHTML = `
+                    <div class="player-name">${player}</div>
+                    <div class="player-role">Click to investigate</div>
+                `;
+                option.onclick = () => selectPlayerForMJ(player);
+                container.appendChild(option);
+            });
+        }
+
+        function selectPlayerForMJ(player) {
+            gameState.selectedPlayer = player;
+            
+            // Update visual selection
+            const options = document.querySelectorAll('#mjPlayers .player-option');
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.querySelector('.player-name').textContent === player) {
+                    opt.classList.add('selected');
+                }
+            });
+            
+            document.getElementById('mjSubmitBtn').disabled = false;
+        }
+
+        async function submitInvestigation() {
+            if (!gameState.selectedPlayer) {
+                showNotification('Please select a player first');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'SUBMIT_INVESTIGATION',
+                        host_id: gameState.hostId,
+                        player_id: gameState.playerId,
+                        role: gameState.myRole,
+                        target_id: gameState.selectedPlayer,
+                        cycle: gameState.currentCycle
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification(`You learned: ${gameState.selectedPlayer} is ${data.learned_role}`, 'success');
+                    document.getElementById('mjSubmitBtn').disabled = true;
+                    document.getElementById('mjSubmitBtn').textContent = 'Submitted ✓';
+                }
+            } catch (error) {
+                showNotification('Network error');
+            }
+        }
+
+        // POLICE & KNIGHT FUNCTIONS
+        async function loadMessages() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'GET_MESSAGES',
+                        host_id: gameState.hostId,
+                        player_id: gameState.playerId,
+                        cycle: gameState.currentCycle
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    gameState.messages = data.messages;
+                    document.getElementById('message1').textContent = data.messages[0] || 'No message';
+                    document.getElementById('message2').textContent = data.messages[1] || 'No message';
+                    
+                    // Update hint
+                    const pkHint = document.getElementById('pkHint');
+                    if (gameState.myRole === 'Police') {
+                        pkHint.innerHTML = '<strong>Police:</strong> True message from Minister, False from Jester';
+                    } else {
+                        pkHint.innerHTML = '<strong>Knight:</strong> True message from Jester, False from Minister';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        function loadPlayersForPK() {
+            const container = document.getElementById('pkPlayers');
+            container.innerHTML = '';
+            
+            // Update button text
+            const btn = document.getElementById('pkSubmitBtn');
+            if (gameState.myRole === 'Police') {
+                btn.textContent = 'Identify Thief';
+            } else {
+                btn.textContent = 'Protect Player';
+            }
+            
+            // Mock players
+            const mockPlayers = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'];
+            mockPlayers.forEach(player => {
+                const option = document.createElement('div');
+                option.className = 'player-option';
+                option.innerHTML = `
+                    <div class="player-name">${player}</div>
+                    <div class="player-role">Click to select</div>
+                `;
+                option.onclick = () => selectPlayerForPK(player);
+                container.appendChild(option);
+            });
+        }
+
+        function selectPlayerForPK(player) {
+            gameState.selectedPlayer = player;
+            
+            const options = document.querySelectorAll('#pkPlayers .player-option');
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.querySelector('.player-name').textContent === player) {
+                    opt.classList.add('selected');
+                }
+            });
+            
+            document.getElementById('pkSubmitBtn').disabled = false;
+        }
+
+        async function submitPKAction() {
+            if (!gameState.selectedPlayer) {
+                showNotification('Please select a player first');
+                return;
+            }
+
+            try {
+                const action = gameState.myRole === 'Police' ? 'SUBMIT_POLICE' : 'SUBMIT_KNIGHT';
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: action,
+                        host_id: gameState.hostId,
+                        player_id: gameState.playerId,
+                        target_id: gameState.selectedPlayer,
+                        cycle: gameState.currentCycle
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification(`Selection submitted!`, 'success');
+                    document.getElementById('pkSubmitBtn').disabled = true;
+                    document.getElementById('pkSubmitBtn').textContent = 'Submitted ✓';
+                }
+            } catch (error) {
+                showNotification('Network error');
+            }
+        }
+
+        // SPY FUNCTIONS
+        function loadPlayersForSpy() {
+            const container = document.getElementById('spyPlayers');
+            container.innerHTML = '';
+            
+            // Reset selections
+            gameState.selectedMinister = '';
+            gameState.selectedJester = '';
+            updateSpySelectionsDisplay();
+            
+            // Mock players
+            const mockPlayers = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'];
+            mockPlayers.forEach(player => {
+                const option = document.createElement('div');
+                option.className = 'player-option';
+                option.innerHTML = `
+                    <div class="player-name">${player}</div>
+                    <div class="player-role">Click to select</div>
+                `;
+                option.onclick = () => selectPlayerForSpy(player);
+                container.appendChild(option);
+            });
+        }
+
+        function selectPlayerForSpy(player) {
+            if (!gameState.selectedMinister) {
+                gameState.selectedMinister = player;
+                document.getElementById('selectedMinister').textContent = player;
+            } else if (!gameState.selectedJester && player !== gameState.selectedMinister) {
+                gameState.selectedJester = player;
+                document.getElementById('selectedJester').textContent = player;
+                document.getElementById('spySubmitBtn').disabled = false;
+            }
+            
+            updateSpySelectionsDisplay();
+        }
+
+        function updateSpySelectionsDisplay() {
+            const options = document.querySelectorAll('#spyPlayers .player-option');
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                const playerName = opt.querySelector('.player-name').textContent;
+                if (playerName === gameState.selectedMinister) {
+                    opt.classList.add('selected');
+                    opt.innerHTML = `
+                        <div class="player-name">${playerName}</div>
+                        <div class="player-role">Selected as Minister</div>
+                    `;
+                } else if (playerName === gameState.selectedJester) {
+                    opt.classList.add('selected');
+                    opt.innerHTML = `
+                        <div class="player-name">${playerName}</div>
+                        <div class="player-role">Selected as Jester</div>
+                    `;
+                }
+            });
+        }
+
+        async function submitSpyPrediction() {
+            if (!gameState.selectedMinister || !gameState.selectedJester) {
+                showNotification('Please select both Minister and Jester');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'SUBMIT_SPY',
+                        host_id: gameState.hostId,
+                        player_id: gameState.playerId,
+                        minister_id: gameState.selectedMinister,
+                        jester_id: gameState.selectedJester,
+                        cycle: gameState.currentCycle
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Predictions submitted!', 'success');
+                    document.getElementById('spySubmitBtn').disabled = true;
+                    document.getElementById('spySubmitBtn').textContent = 'Submitted ✓';
+                }
+            } catch (error) {
+                showNotification('Network error');
+            }
+        }
+
+        // WAITING PHASE
+        function showWaitingPhase(message) {
+            document.getElementById('waitingMessage').textContent = message;
+            document.getElementById('currentPhaseName').textContent = 
+                gameState.currentPhase.replace(/_/g, ' ');
+            
+            // Mock completion stats
+            document.getElementById('completedCount').textContent = 
+                Math.floor(Math.random() * 5) + 1;
+            document.getElementById('totalPlayersCount').textContent = '6';
+            document.getElementById('completionBar').style.width = '50%';
+        }
+
+        // RESULTS
+        async function showResults() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'GET_RESULTS',
+                        host_id: gameState.hostId,
+                        cycle: gameState.currentCycle
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    // Show results summary
+                    document.getElementById('waitingPhase').classList.add('active');
+                    document.getElementById('waitingMessage').textContent = 
+                        `Cycle ${gameState.currentCycle} Results Calculated!`;
+                    
+                    // Redirect to results page after delay
+                    setTimeout(() => {
+                        window.location.href = 'results.html';
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Error loading results:', error);
+            }
+        }
+
+        // NOTIFICATION
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.borderLeftColor = type === 'success' ? '#2ED573' : '#00BFFF';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+    </script>
+</body>
+  </html>
