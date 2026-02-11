@@ -225,14 +225,18 @@
                 list.appendChild(div);
             });
 
-            // Check Game Start
-            if (data.gameStart) {
-                isGameStarted = true;
-                document.getElementById('game-status').classList.remove('hidden');
-                document.getElementById('lobby-controls').classList.add('hidden');
-                // Optional: Stop polling or slow it down
-                // clearInterval(pollingInterval); 
-            }
+            // ✅ FRONTEND CHECK: All Players Ready
+const allReady = data.players.length > 0 && 
+                 data.players.every(p => p.isReady === true);
+
+// Optional: Require minimum 2 players
+const minimumPlayers = data.players.length >= 2;
+
+if (allReady && minimumPlayers) {
+    isGameStarted = true;
+    document.getElementById('game-status').classList.remove('hidden');
+    document.getElementById('lobby-controls').classList.add('hidden');
+}
         }
     }
 </script>
