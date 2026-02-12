@@ -140,6 +140,17 @@
 </div>
 
 <script>
+    let WORDS = [];
+
+async function loadWords() {
+    const res = await fetch('words.json');
+    const data = await res.json();
+    WORDS = data.words || [];
+}
+
+window.onload = function () {
+    loadWords();
+};
     const API_URL = 'https://script.google.com/macros/s/AKfycbxroY62th8YX8bD1st0LFi7b2xhD1IlXjzYpgkTiYgVWHZXl5-e1Ofs7imItsaFzLCQuQ/exec'; // <--- PASTE DEPLOY URL
     
     // STATE
@@ -152,18 +163,31 @@
     // --- ACTIONS ---
 
     async function doCreate() {
-        const name = document.getElementById('c-name').value;
-        const imp = document.getElementById('c-imposters').value;
-        const cyc = document.getElementById('c-cycles').value;
-        if(!name) return alert("Name Required");
-        
-        me.name = name;
-        me.room = Math.floor(100000 + Math.random() * 900000);
-        
-        toggleLoading(true);
-        await api('create_room', { playerName: name, roomId: me.room, imposters: imp, cycles: cyc });
-        enterLobby();
-    }
+
+    const name = document.getElementById('c-name').value;
+    const imp = document.getElementById('c-imposters').value;
+    const cyc = document.getElementById('c-cycles').value;
+
+    if (!name) return alert("Name Required");
+    if (WORDS.length === 0) return alert("Word list not loaded yet!");
+
+    me.name = name;
+    me.room = Math.floor(100000 + Math.random() * 900000);
+
+    const randomWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+
+    toggleLoading(true);
+
+    await api('create_room', {
+        playerName: name,
+        roomId: me.room,
+        imposters: imp,
+        cycles: cyc,
+        secretWord: randomWord
+    });
+
+    enterLobby();
+        }
 
     async function doJoin() {
         const name = document.getElementById('j-name').value;
