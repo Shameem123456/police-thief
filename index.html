@@ -91,15 +91,27 @@
     </div>
 
     <div id="screen-reveal" class="hidden">
-        <h2>Your Identity</h2>
-        <p>Hold card to see role. Memorize it!</p>
-        <div class="reveal-container" onmousedown="holdCard(true)" onmouseup="holdCard(false)" ontouchstart="holdCard(true)" ontouchend="holdCard(false)">
-            <div class="flip-card">
-                <div class="card-front">HOLD TO REVEAL</div>
-                <div class="card-back" id="secret-word">???</div>
-            </div>
+    <h2>Your Identity</h2>
+    <p>Hold card to see role. Memorize it!</p>
+
+    <div class="reveal-container"
+        onmousedown="holdCard(true)"
+        onmouseup="holdCard(false)"
+        ontouchstart="holdCard(true)"
+        ontouchend="holdCard(false)">
+        <div class="flip-card">
+            <div class="card-front">HOLD TO REVEAL</div>
+            <div class="card-back" id="secret-word">???</div>
         </div>
-        <div id="timer-display">Time: 60s</div>
+    </div>
+
+    <button id="btn-reveal-ready"
+        class="btn-primary"
+        onclick="revealReady()">
+        Ready
+    </button>
+
+    <div id="reveal-msg" style="color:yellow; font-size:0.8em;"></div>
     </div>
 
     <div id="screen-game" class="hidden">
@@ -202,7 +214,18 @@ window.onload = function () {
         if(res.status === 'success') enterLobby();
         else { alert(res.message); toggleLoading(false); }
     }
+    
+    async function revealReady() {
 
+    document.getElementById('btn-reveal-ready').disabled = true;
+    document.getElementById('btn-reveal-ready').innerText = "Waiting others...";
+
+    await api('reveal_ready', {
+        roomId: me.room,
+        playerName: me.name
+    });
+    }
+    
     async function doReady() {
         document.getElementById('btn-ready').disabled = true;
         document.getElementById('btn-ready').innerText = "Waiting...";
@@ -281,9 +304,8 @@ window.onload = function () {
     function handlePhaseChange(data) {
         // Switch screens based on phase
         if (phase === 'REVEAL') {
-            showScreen('screen-reveal');
-            document.getElementById('secret-word').innerText = data.secretWord;
-            startTimer(60, () => { /* Server handles transition usually, but UI timer helps */ });
+    showScreen('screen-reveal');
+    document.getElementById('secret-word').innerText = data.secretWord;
         } else if (phase === 'GAME') { // Renamed from PLAY in some logic, using GAME here
             showScreen('screen-game');
         } else if (phase === 'VOTE') {
