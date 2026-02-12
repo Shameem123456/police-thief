@@ -12,14 +12,14 @@
 
     <!-- MAIN MENU -->
     <div id="screen-main">
-        <h1 class="glitch">SPY GAME</h1>
+        <h1 class="glitch">WORD GAME</h1>
         <button id="btn-create-screen" class="btn-primary" onclick="showScreen('screen-create')">🔐 Create Room</button>
         <button id="btn-join-screen" class="btn-secondary" onclick="showScreen('screen-join')">🕵️ Join Room</button>
     </div>
 
     <!-- CREATE ROOM -->
     <div id="screen-create" class="hidden">
-        <h2>📡 new mission</h2>
+        <h2>🎇 Create your room</h2>
         <input type="text" id="c-name" placeholder="Your codename" autocomplete="off">
         <div class="settings-grid">
             <div>
@@ -27,6 +27,7 @@
                 <select id="c-imposters">
                     <option value="1">1</option>
                     <option value="2">2</option>
+                    <option value="3">3</option>
                 </select>
             </div>
             <div>
@@ -35,16 +36,17 @@
                     <option value="2">2</option>
                     <option value="3">3</option>
                     <option value="4">4</option>
+                    <option value="5">5</option>
                 </select>
             </div>
         </div>
-        <button id="btn-create" class="btn-primary" onclick="doCreate()">🚀 launch</button>
+        <button id="btn-create" class="btn-primary" onclick="doCreate()">🚀 Create</button>
         <button id="btn-create-back" class="btn-secondary" onclick="showScreen('screen-main')">← back</button>
     </div>
 
     <!-- JOIN ROOM -->
     <div id="screen-join" class="hidden">
-        <h2>🛸 join mission</h2>
+        <h2>🛸 join room</h2>
         <input type="text" id="j-name" placeholder="Your codename" autocomplete="off">
         <input type="number" id="j-room" placeholder="Room ID (6 digits)" autocomplete="off">
         <button id="btn-join" class="btn-primary" onclick="doJoin()">🔌 connect</button>
@@ -98,7 +100,7 @@
 
     <!-- MISSION RESULT -->
     <div id="screen-result" class="hidden">
-        <h2>📋 mission report</h2>
+        <h2>📋 report</h2>
         <div id="result-display" class="result-box"></div>
         <button id="btn-new-game" class="btn-primary" onclick="location.reload()">🔄 new game</button>
     </div>
