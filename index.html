@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>SPY GAME · DARK BLUE</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container modern-blue">
+
+    <!-- MAIN MENU -->
+    <div id="screen-main">
+        <h1>SPY GAME</h1>
+        <button id="btn-create-screen" class="btn-primary" onclick="showScreen('screen-create')">🔐 CREATE ROOM</button>
+        <button id="btn-join-screen" class="btn-secondary" onclick="showScreen('screen-join')">🕵️ JOIN ROOM</button>
+    </div>
+
+    <!-- CREATE ROOM -->
+    <div id="screen-create" class="hidden">
+        <h2>NEW MISSION</h2>
+        <input type="text" id="c-name" placeholder="Your codename" autocomplete="off">
+        <div class="settings-grid">
+            <div>
+                <label>IMPOSTERS</label>
+                <select id="c-imposters">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
+            </div>
+            <div>
+                <label>CYCLES</label>
+                <select id="c-cycles">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+        </div>
+        <button id="btn-create" class="btn-primary" onclick="doCreate()">🚀 LAUNCH</button>
+        <button id="btn-create-back" class="btn-secondary" onclick="showScreen('screen-main')">← BACK</button>
+    </div>
+
+    <!-- JOIN ROOM -->
+    <div id="screen-join" class="hidden">
+        <h2>JOIN MISSION</h2>
+        <input type="text" id="j-name" placeholder="Your codename" autocomplete="off">
+        <input type="number" id="j-room" placeholder="Room ID (6 digits)" autocomplete="off">
+        <button id="btn-join" class="btn-primary" onclick="doJoin()">🔌 CONNECT</button>
+        <button id="btn-join-back" class="btn-secondary" onclick="showScreen('screen-main')">← BACK</button>
+    </div>
+
+    <!-- LOBBY -->
+    <div id="screen-lobby" class="hidden">
+        <h2>🛡️ ROOM: <span id="lobby-id"></span></h2>
+        <div id="player-list" class="players-container">Loading agents...</div>
+        <button id="btn-ready" class="btn-primary" onclick="doReady()">✅ READY</button>
+        <div id="lobby-msg" class="info-msg"></div>
+    </div>
+
+    <!-- REVEAL ROLE (flip card) -->
+    <div id="screen-reveal" class="hidden">
+        <h2>🎭 YOUR IDENTITY</h2>
+        <p class="hint">touch & hold to reveal — memorise it.</p>
+        <div class="reveal-container"
+            onmousedown="holdCard(true)"
+            onmouseup="holdCard(false)"
+            ontouchstart="holdCard(true)"
+            ontouchend="holdCard(false)">
+            <div class="flip-card">
+                <div class="card-front">⬛ HOLD</div>
+                <div class="card-back" id="secret-word">???</div>
+            </div>
+        </div>
+        <button id="btn-reveal-ready" class="btn-primary" onclick="revealReady()">✔️ I REMEMBER</button>
+        <div id="reveal-msg" class="info-msg"></div>
+    </div>
+
+    <!-- MAIN GAME (word submission) -->
+    <div id="screen-game" class="hidden">
+        <h2>🌀 CYCLE <span id="cycle-num">1</span></h2>
+        <div id="turn-indicator" class="turn-light">⏳ WAITING FOR TURN...</div>
+
+        <!-- LATEST WORD BANNER (name small, word big) -->
+        <div id="latest-word-banner" class="banner">
+            <span class="banner-label">📡 LATEST TRANSMISSION</span>
+            <div id="banner-content" class="banner-content">
+                <span class="banner-player">——</span>
+                <span class="banner-word">———</span>
+            </div>
+        </div>
+
+        <!-- HISTORY DROPDOWN (collapsible) -->
+        <div class="history-container">
+            <button id="toggle-history" class="btn-history">📜 SHOW HISTORY ▼</button>
+            <div id="word-history" class="history-panel hidden"></div>
+        </div>
+
+        <!-- Word input & send button – will be hidden after submission -->
+        <input type="text" id="game-word" placeholder="type a related word..." autocomplete="off">
+        <button id="btn-submit-word" class="btn-primary" onclick="submitWord()" disabled>📤 SEND</button>
+        <!-- Optional: we could add a "Word sent" message, but we simply hide the elements -->
+    </div>
+
+    <!-- VOTING SCREEN -->
+    <div id="screen-vote" class="hidden">
+        <h2>⚖️ IDENTIFY IMPOSTER</h2>
+        <p class="hint">select your target</p>
+        <div id="vote-list" class="vote-grid"></div>
+        <button id="btn-cast-vote" class="btn-primary" onclick="submitVote()" disabled>🔒 CONFIRM VOTE</button>
+    </div>
+
+    <!-- MISSION RESULT -->
+    <div id="screen-result" class="hidden">
+        <h2>📋 MISSION REPORT</h2>
+        <div id="result-display" class="result-box"></div>
+        <button id="btn-new-game" class="btn-primary" onclick="location.reload()">🔄 NEW GAME</button>
+    </div>
+
+    <!-- GLOBAL CHAT -->
+    <div id="chat-section" class="hidden chat-panel">
+        <div id="chat-display" class="chat-messages"></div>
+        <div class="chat-controls">
+            <select id="chat-target" class="chat-select">
+                <option value="ALL">📢 ALL</option>
+            </select>
+            <input type="text" id="chat-input" placeholder="whisper..." autocomplete="off">
+            <button id="btn-send-chat" onclick="sendChat()" disabled>💬</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+          </html>
